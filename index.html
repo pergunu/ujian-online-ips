@@ -139,6 +139,7 @@
         /* Form Styles */
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         .form-control {
@@ -189,6 +190,24 @@
         .checkbox-option:checked + .checkbox-label {
             background: linear-gradient(to right, var(--color-secondary), var(--color-tertiary));
             box-shadow: 0 4px 15px rgba(37, 117, 252, 0.3);
+        }
+
+        /* Custom Checkbox for Terms */
+        .terms-checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .terms-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            accent-color: var(--color-secondary);
+        }
+        
+        .terms-text {
+            font-size: 14px;
         }
 
         /* Animation Classes */
@@ -924,11 +943,53 @@
             color: #a94442;
             border: 1px solid #ebccd1;
         }
+
+        /* Error message styles */
+        .error-message {
+            color: var(--color-error);
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Warning notification */
+        .warning-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--color-warning);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        /* Input error state */
+        .input-error {
+            border-color: var(--color-error) !important;
+            background: rgba(244, 67, 54, 0.1) !important;
+        }
+
+        /* Radio group error */
+        .radio-group-error {
+            outline: 2px solid var(--color-error);
+            border-radius: 8px;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
     <div id="celebration-particles"></div>
+    
+    <!-- Warning notification for incomplete form -->
+    <div class="warning-notification" id="form-warning">
+        <i class="fas fa-exclamation-circle"></i> Harap lengkapi semua data peserta dengan benar sebelum melanjutkan!
+    </div>
     
     <div class="container">
         <!-- Welcome Screen -->
@@ -939,7 +1000,7 @@
             </div>
             
             <div id="greeting-message">
-                <p id="greeting-text">Selamat datang di sistem ujian online IPS PERGUNU Situbondo, Sistem tes kemampuan akademik untuk pelajar. Silakan masukkan kode login untuk melanjutkan.</p>
+                <p id="greeting-text">Selamat datang di sistem ujian online IPS PERGUNU Situbondo. Silakan masukkan kode login untuk melanjutkan.</p>
             </div>
             
             <div class="form-group">
@@ -955,7 +1016,7 @@
         <div id="terms-screen" class="card" style="display: none;">
             <h2>Peraturan dan Kebijakan Ujian Online</h2>
             <div class="terms-content" style="max-height: 300px; overflow-y: auto; margin: 20px 0; padding: 15px; background: rgba(0, 0, 0, 0.1); border-radius: 8px;">
-                <p>1. Ujian ini dikembangkan oleh Cendhanu Tim Kreator PERGUNU Situbondo.</p>
+                <p>1. Ujian ini dikembangkan oleh Tim Kreator PERGUNU Situbondo.</p>
                 <p>2. Peserta wajib mengisi data diri dengan benar dan lengkap.</p>
                 <p>3. Dilarang keras melakukan kecurangan selama ujian berlangsung.</p>
                 <p>4. Waktu ujian akan berjalan terus dan tidak dapat dihentikan.</p>
@@ -966,9 +1027,9 @@
                 <p>9. Keputusan panitia ujian bersifat mutlak dan tidak dapat diganggu gugat.</p>
             </div>
             
-            <div class="form-group">
-                <input type="checkbox" id="agree-terms" class="checkbox-option">
-                <label for="agree-terms" class="checkbox-label">Saya menyetujui</label>
+            <div class="terms-checkbox-container">
+                <input type="checkbox" id="agree-terms" class="terms-checkbox" required>
+                <span class="terms-text">Saya telah membaca dan menyetujui peraturan di atas</span>
             </div>
             
             <button id="continue-btn" class="btn" disabled>Lanjut Ikut Ujian</button>
@@ -982,6 +1043,7 @@
             <div class="form-group">
                 <label for="fullname" class="form-label">Nama Lengkap</label>
                 <input type="text" id="fullname" class="form-control" placeholder="Masukkan nama lengkap" pattern="[A-Za-z ]+" title="Hanya huruf diperbolehkan" required>
+                <div class="error-message" id="fullname-error">Nama lengkap harus diisi dan hanya boleh mengandung huruf</div>
             </div>
             
             <div class="form-group">
@@ -996,17 +1058,19 @@
             <div id="student-fields">
                 <div class="form-group">
                     <label for="school-name" class="form-label">Nama Sekolah</label>
-                    <input type="text" id="school-name" class="form-control" placeholder="Masukkan nama sekolah">
+                    <input type="text" id="school-name" class="form-control" placeholder="Masukkan nama sekolah" required>
+                    <div class="error-message" id="school-error">Nama sekolah harus diisi</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="student-id" class="form-label">NIS (Nomor Induk Siswa)</label>
                     <input type="text" id="student-id" class="form-control" placeholder="Masukkan NIS" pattern="[0-9]+" title="Hanya angka diperbolehkan" required>
+                    <div class="error-message" id="nis-error">NIS harus diisi dan hanya boleh mengandung angka</div>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Tujuan Ikut Ujian</label>
-                    <div class="radio-group">
+                    <div class="radio-group" id="purpose-radio-group">
                         <input type="radio" id="purpose-task" name="purpose" value="Tugas Sekolah" class="radio-option">
                         <label for="purpose-task" class="radio-label">Tugas Sekolah</label>
                         
@@ -1016,11 +1080,12 @@
                         <input type="radio" id="purpose-test" name="purpose" value="Tes dan Belajar" class="radio-option">
                         <label for="purpose-test" class="radio-label">Tes dan Belajar</label>
                     </div>
+                    <div class="error-message" id="purpose-error">Silakan pilih tujuan ikut ujian</div>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Tingkat Sekolah</label>
-                    <div class="radio-group">
+                    <div class="radio-group" id="level-radio-group">
                         <input type="radio" id="level-elementary" name="level" value="SD" class="radio-option">
                         <label for="level-elementary" class="radio-label">SD</label>
                         
@@ -1030,6 +1095,7 @@
                         <input type="radio" id="level-senior" name="level" value="SMA/SMK" class="radio-option">
                         <label for="level-senior" class="radio-label">SMA/SMK</label>
                     </div>
+                    <div class="error-message" id="level-error">Silakan pilih tingkat sekolah</div>
                 </div>
             </div>
             
@@ -1040,6 +1106,7 @@
                     <div class="radio-group" id="grade-options">
                         <!-- Options will be populated by JavaScript -->
                     </div>
+                    <div class="error-message" id="grade-error">Silakan pilih kelas</div>
                 </div>
             </div>
             
@@ -1047,10 +1114,11 @@
             <div id="subject-selection" style="display: none;">
                 <div class="form-group">
                     <label class="form-label">Pilih Jenis Ujian</label>
-                    <div class="radio-group">
-                        <input type="radio" id="subject-social" name="subject" value="IPS" class="radio-option" checked>
-                        <label for="subject-social" class="radio-label">IPS</label>
+                    <div class="radio-group" id="subject-radio-group">
+                        <input type="radio" id="subject-ips" name="subject" value="IPS" class="radio-option" checked>
+                        <label for="subject-ips" class="radio-label">Ilmu Pengetahuan Sosial</label>
                     </div>
+                    <div class="error-message" id="subject-error">Silakan pilih jenis ujian</div>
                 </div>
             </div>
             
@@ -1167,30 +1235,6 @@
                                 <label class="admin-control-label">Durasi Ujian (menit)</label>
                                 <input type="number" id="exam-duration" class="admin-control-input" value="120" min="5" max="300">
                             </div>
-                            <div class="admin-control-group">
-                                <label class="admin-control-label">Jumlah Soal</label>
-                                <select id="question-count" class="admin-control-input">
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="15">15</option>
-                                    <option value="20">20</option>
-                                    <option value="25">25</option>
-                                    <option value="30">30</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                    <option value="150">150</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="admin-control-group">
-                            <label class="admin-control-label">Acak Soal</label>
-                            <div class="admin-toggle">
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="randomize-questions" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                                <span id="randomize-status">Aktif</span>
-                            </div>
                         </div>
                     </div>
                     
@@ -1251,6 +1295,17 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="export-buttons">
+                            <button id="export-csv-btn" class="btn btn-info">
+                                <i class="fas fa-file-csv"></i> Export to CSV
+                            </button>
+                            <button id="export-json-btn" class="btn btn-info">
+                                <i class="fas fa-file-code"></i> Export to JSON
+                            </button>
+                            <button id="export-excel-btn" class="btn btn-success">
+                                <i class="fas fa-file-excel"></i> Export to Excel
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="admin-section">
@@ -1270,13 +1325,13 @@
                     <div class="admin-section">
                         <h5>Aktifkan/Nonaktifkan Ujian</h5>
                         <div class="admin-control-group">
-                            <label class="admin-control-label">IPS</label>
+                            <label class="admin-control-label">Ilmu Pengetahuan Sosial</label>
                             <div class="admin-toggle">
                                 <label class="toggle-switch">
-                                    <input type="checkbox" id="toggle-social" checked>
+                                    <input type="checkbox" id="toggle-ips" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
-                                <span id="social-status">Aktif</span>
+                                <span id="ips-status">Aktif</span>
                             </div>
                         </div>
                         <button id="save-settings-btn" class="btn btn-success">Simpan Pengaturan</button>
@@ -1355,7 +1410,7 @@
             <div class="form-group">
                 <label class="form-label">Mata Ujian</label>
                 <select id="edit-subject" class="form-control" style="color: #333;">
-                    <option value="IPS">IPS</option>
+                    <option value="IPS">Ilmu Pengetahuan Sosial</option>
                 </select>
             </div>
             
@@ -1388,6 +1443,7 @@
     <audio id="opening-sound" src="https://github.com/pergunu/ujian-online/raw/main/assets/audio/opening.mp3" preload="auto"></audio>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // Global variables
         let currentScreen = 'welcome';
@@ -1399,7 +1455,11 @@
         let examTimer;
         let examTimeLeft = 120 * 60; // 120 minutes in seconds
         let selectedParticipants = [];
-        
+        let questionOrder = []; // Untuk menyimpan urutan soal yang diacak
+
+        // URL Google Apps Script untuk penyimpanan data
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuh1M0pS64v5e_HYGafcG7CD8RwCEf4FVroKnOT1DujxTdCnn6zTBeQvSwgmenspgN/exec';
+
         // Audio elements
         const buttonSound = document.getElementById('button-sound');
         const correctAnswerSound = document.getElementById('correct-answer-sound');
@@ -1411,1920 +1471,406 @@
         const DEFAULT_LOGIN_CODE = '12345';
         const DEFAULT_ADMIN_PANEL_CODE = '65614222';
         
-        // Store participants data
-        let participantsData = JSON.parse(localStorage.getItem('participantsData')) || [];
+        // Store participants data in localStorage
+        let participantsData = JSON.parse(localStorage.getItem('pergunuParticipantsData')) || [];
         
-        // Store admin settings
-        let adminSettings = JSON.parse(localStorage.getItem('adminSettings')) || {
+        // Store admin settings in localStorage
+        let adminSettings = JSON.parse(localStorage.getItem('pergunuAdminSettings')) || {
             loginCode: DEFAULT_LOGIN_CODE,
             adminCode: DEFAULT_ADMIN_PANEL_CODE,
             examDuration: 120,
-            questionCount: 20,
-            randomizeQuestions: true,
             greetingMessage: "Selamat datang di sistem ujian online IPS PERGUNU Situbondo. Silakan masukkan kode login untuk melanjutkan.",
             adminMessage: "Tidak ada informasi terbaru saat ini.",
             chairmanName: "Moh. Nuril Hudha, S.Pd., M.Si.",
             enabledSubjects: {
-                IPS: true
+                "IPS": true
             }
         };
 
-        // Question bank structure with levels (IPS only)
+        // Expanded Question bank for IPS (Ilmu Pengetahuan Sosial)
         let QUESTION_BANK = {
             'SD': {
                 'IPS': [
                     {
-                question: "Apa nama ibukota Indonesia?",
-                options: [
-                    "A. Jakarta",
-                    "B. Bandung",
-                    "C. Surabaya",
-                    "D. Medan",
-                    "E. Makassar"
-                ],
-                correctAnswer: 0,
-                explanation: "Ibukota Indonesia adalah Jakarta. Pada tahun 2024, ibukota akan dipindahkan ke Nusantara di Kalimantan Timur."
-            },
-            {
-                question: "Lembaga yang bertugas mencetak uang di Indonesia adalah...",
-                options: [
-                    "A. Bank Indonesia",
-                    "B. Perum Peruri",
-                    "C. Kementerian Keuangan",
-                    "D. Otoritas Jasa Keuangan",
-                    "E. Badan Pemeriksa Keuangan"
-                ],
-                correctAnswer: 1,
-                explanation: "Perum Peruri (Percetakan Uang Republik Indonesia) adalah lembaga yang bertugas mencetak uang rupiah."
-            },
-            {
-                question: "Sungai terpanjang di Indonesia adalah...",
-                options: [
-                    "A. Sungai Musi",
-                    "B. Sungai Kapuas",
-                    "C. Sungai Mahakam",
-                    "D. Sungai Barito",
-                    "E. Sungai Bengawan Solo"
-                ],
-                correctAnswer: 1,
-                explanation: "Sungai Kapuas di Kalimantan Barat adalah sungai terpanjang di Indonesia dengan panjang sekitar 1.143 km."
-            },
-            {
-                question: "Berikut ini yang bukan termasuk jenis usaha ekonomi perorangan adalah...",
-                options: [
-                    "A. Usaha warung kelontong",
-                    "B. Usaha fotokopi",
-                    "C. Usaha koperasi",
-                    "D. Usaha bengkel",
-                    "E. Usaha salon"
-                ],
-                correctAnswer: 2,
-                explanation: "Koperasi adalah bentuk usaha bersama, bukan usaha perorangan. Koperasi dimiliki oleh beberapa orang yang menjadi anggotanya."
-            },
-            {
-                question: "Peninggalan sejarah berupa bangunan yang berfungsi sebagai tempat pemujaan pada masa Hindu-Buddha adalah...",
-                options: [
-                    "A. Candi",
-                    "B. Benteng",
-                    "C. Istana",
-                    "D. Prasasti",
-                    "E. Masjid"
-                ],
-                correctAnswer: 0,
-                explanation: "Candi adalah bangunan peninggalan masa Hindu-Buddha yang berfungsi sebagai tempat pemujaan atau tempat suci."
-            },
-            {
-                question: "Provinsi termuda di Indonesia yang resmi terbentuk pada tahun 2022 adalah...",
-                options: [
-                    "A. Kalimantan Utara",
-                    "B. Papua Barat Daya",
-                    "C. Sulawesi Barat",
-                    "D. Gorontalo",
-                    "E. Kepulauan Riau"
-                ],
-                correctAnswer: 1,
-                explanation: "Papua Barat Daya adalah provinsi termuda di Indonesia yang resmi terbentuk pada tahun 2022 bersama dua provinsi baru lainnya di Papua."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh kebutuhan primer adalah...",
-                options: [
-                    "A. Televisi",
-                    "B. Sepeda motor",
-                    "C. Makanan",
-                    "D. Liburan",
-                    "E. Perhiasan"
-                ],
-                correctAnswer: 2,
-                explanation: "Kebutuhan primer adalah kebutuhan dasar manusia untuk bertahan hidup, meliputi makanan, pakaian, dan tempat tinggal."
-            },
-            {
-                question: "Pahlawan nasional yang dikenal sebagai 'Bapak Pendidikan Nasional' adalah...",
-                options: [
-                    "A. Ki Hajar Dewantara",
-                    "B. RA Kartini",
-                    "C. Cut Nyak Dien",
-                    "D. Pattimura",
-                    "E. Diponegoro"
-                ],
-                correctAnswer: 0,
-                explanation: "Ki Hajar Dewantara dijuluki sebagai Bapak Pendidikan Nasional karena perjuangannya dalam bidang pendidikan dan mendirikan Taman Siswa."
-            },
-            {
-                question: "Pertanian yang mengolah lahan dengan cara berpindah-pindah disebut...",
-                options: [
-                    "A. Pertanian intensif",
-                    "B. Pertanian ekstensif",
-                    "C. Ladang berpindah",
-                    "D. Pertanian hidroponik",
-                    "E. Pertanian organik"
-                ],
-                correctAnswer: 2,
-                explanation: "Ladang berpindah adalah sistem pertanian dimana petani membuka lahan baru dengan cara menebang dan membakar hutan, lalu meninggalkannya setelah beberapa kali panen."
-            },
-            {
-                question: "Peninggalan sejarah berupa tulisan atau gambar pada batu atau logam disebut...",
-                options: [
-                    "A. Arca",
-                    "B. Candi",
-                    "C. Prasasti",
-                    "D. Naskah",
-                    "E. Relief"
-                ],
-                correctAnswer: 2,
-                explanation: "Prasasti adalah piagam atau dokumen yang ditulis pada bahan yang keras dan tahan lama seperti batu atau logam."
-            },
-            {
-                question: "Berikut ini yang bukan termasuk ciri-ciri pasar adalah...",
-                options: [
-                    "A. Ada penjual dan pembeli",
-                    "B. Ada barang atau jasa yang diperjualbelikan",
-                    "C. Ada proses tawar menawar",
-                    "D. Harus ada bangunan permanen",
-                    "E. Ada kesepakatan harga"
-                ],
-                correctAnswer: 3,
-                explanation: "Pasar tidak harus memiliki bangunan permanen. Pasar bisa bersifat temporer seperti pasar kaget atau pasar tradisional yang buka pada hari tertentu."
-            },
-            {
-                question: "Suku bangsa yang berasal dari Provinsi Bali adalah...",
-                options: [
-                    "A. Batak",
-                    "B. Dayak",
-                    "C. Sasak",
-                    "D. Bali",
-                    "E. Toraja"
-                ],
-                correctAnswer: 3,
-                explanation: "Suku Bali adalah suku bangsa yang mendiami Pulau Bali. Suku Sasak berasal dari Lombok, sedangkan suku lainnya berasal dari daerah yang berbeda."
-            },
-            {
-                question: "Pulau terbesar di Indonesia adalah...",
-                options: [
-                    "A. Jawa",
-                    "B. Sumatera",
-                    "C. Kalimantan",
-                    "D. Sulawesi",
-                    "E. Papua"
-                ],
-                correctAnswer: 4,
-                explanation: "Pulau Papua adalah pulau terbesar di Indonesia dengan luas sekitar 786.000 km² (bagian barat). Pulau ini juga merupakan pulau terbesar kedua di dunia."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh sumber daya alam yang tidak dapat diperbarui adalah...",
-                options: [
-                    "A. Air",
-                    "B. Tanah",
-                    "C. Minyak bumi",
-                    "D. Hutan",
-                    "E. Udara"
-                ],
-                correctAnswer: 2,
-                explanation: "Minyak bumi termasuk sumber daya alam yang tidak dapat diperbarui karena proses pembentukannya membutuhkan waktu jutaan tahun dan jumlahnya terbatas."
-            },
-            {
-                question: "Kerajaan Hindu tertua di Indonesia adalah...",
-                options: [
-                    "A. Majapahit",
-                    "B. Sriwijaya",
-                    "C. Kutai",
-                    "D. Tarumanegara",
-                    "E. Singasari"
-                ],
-                correctAnswer: 2,
-                explanation: "Kerajaan Kutai di Kalimantan Timur adalah kerajaan Hindu tertua di Indonesia yang berdiri sekitar abad ke-4 Masehi."
-            },
-            {
-                question: "Alat pembayaran resmi yang sah di Indonesia adalah...",
-                options: [
-                    "A. Rupiah",
-                    "B. Dolar",
-                    "C. Emas",
-                    "D. Cek",
-                    "E. Kartu kredit"
-                ],
-                correctAnswer: 0,
-                explanation: "Menurut Undang-Undang, alat pembayaran yang sah di Indonesia adalah Rupiah yang dikeluarkan oleh Bank Indonesia."
-            },
-            {
-                question: "Peninggalan sejarah Islam di Indonesia berupa menara tempat mengumandangkan adzan disebut...",
-                options: [
-                    "A. Mihrab",
-                    "B. Menara",
-                    "C. Mimbar",
-                    "D. Bedug",
-                    "E. Kenthongan"
-                ],
-                correctAnswer: 1,
-                explanation: "Menara adalah bangunan tinggi di masjid yang berfungsi sebagai tempat mengumandangkan adzan. Di Indonesia, beberapa masjid kuno menggunakan bedug sebagai alat panggil shalat."
-            },
-            {
-                question: "Berikut ini yang bukan termasuk benua adalah...",
-                options: [
-                    "A. Asia",
-                    "B. Afrika",
-                    "C. Amerika",
-                    "D. Eropa",
-                    "E. Australia"
-                ],
-                correctAnswer: 4,
-                explanation: "Semua pilihan adalah nama-nama benua yang diakui. Australia memang benua sekaligus negara (benua terkecil di dunia)."
-            },
-            {
-                question: "Tokoh yang memimpin perlawanan rakyat Maluku terhadap Portugis adalah...",
-                options: [
-                    "A. Pangeran Diponegoro",
-                    "B. Sultan Hasanuddin",
-                    "C. Pattimura",
-                    "D. Tuanku Imam Bonjol",
-                    "E. Cut Nyak Dien"
-                ],
-                correctAnswer: 2,
-                explanation: "Pattimura (Thomas Matulessy) adalah pahlawan nasional yang memimpin perlawanan rakyat Maluku terhadap penjajahan Belanda pada tahun 1817."
-            },
-            {
-                question: "Kegiatan ekonomi yang memanfaatkan sumber daya laut adalah...",
-                options: [
-                    "A. Pertanian",
-                    "B. Perkebunan",
-                    "C. Perikanan",
-                    "D. Peternakan",
-                    "E. Kehutanan"
-                ],
-                correctAnswer: 2,
-                explanation: "Perikanan, khususnya perikanan laut, adalah kegiatan ekonomi yang memanfaatkan sumber daya hayati laut."
-            },
-            {
-                question: "Peninggalan sejarah berupa patung yang digunakan sebagai sarana pemujaan disebut...",
-                options: [
-                    "A. Candi",
-                    "B. Prasasti",
-                    "C. Arca",
-                    "D. Relief",
-                    "E. Stupa"
-                ],
-                correctAnswer: 2,
-                explanation: "Arca adalah patung yang dibuat untuk tujuan keagamaan, biasanya menggambarkan dewa atau tokoh suci dalam agama Hindu dan Buddha."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh kegiatan distribusi adalah...",
-                options: [
-                    "A. Petani menanam padi",
-                    "B. Pabrik membuat sepatu",
-                    "C. Truk mengangkut barang ke toko",
-                    "D. Ibu membeli sayur di pasar",
-                    "E. Nelayan menangkap ikan"
-                ],
-                correctAnswer: 2,
-                explanation: "Distribusi adalah kegiatan menyalurkan barang dari produsen ke konsumen. Pengangkutan barang ke toko adalah bagian dari proses distribusi."
-            },
-            {
-                question: "Gunung tertinggi di Indonesia adalah...",
-                options: [
-                    "A. Gunung Kerinci",
-                    "B. Gunung Rinjani",
-                    "C. Gunung Semeru",
-                    "D. Gunung Jaya Wijaya",
-                    "E. Gunung Merapi"
-                ],
-                correctAnswer: 3,
-                explanation: "Gunung Jaya Wijaya (Puncak Carstensz) di Papua adalah gunung tertinggi di Indonesia dengan ketinggian 4.884 mdpl dan merupakan satu-satunya gunung di Indonesia yang memiliki salju abadi."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh kewajiban di sekolah adalah...",
-                options: [
-                    "A. Mendapat nilai bagus",
-                    "B. Menggunakan fasilitas sekolah",
-                    "C. Menghormati guru",
-                    "D. Mendapat perlindungan",
-                    "E. Mengikuti ekskul"
-                ],
-                correctAnswer: 2,
-                explanation: "Menghormati guru adalah salah satu kewajiban siswa di sekolah. Kewajiban adalah sesuatu yang harus dilakukan dengan penuh tanggung jawab."
-            },
-            {
-                question: "Lembaga negara yang bertugas membuat undang-undang adalah...",
-                options: [
-                    "A. Presiden",
-                    "B. Mahkamah Agung",
-                    "C. DPR",
-                    "D. KPK",
-                    "E. Bank Indonesia"
-                ],
-                correctAnswer: 2,
-                explanation: "DPR (Dewan Perwakilan Rakyat) bersama Presiden bertugas membuat undang-undang sesuai dengan amanat UUD 1945."
-            },
-            {
-                question: "Danau terbesar di Indonesia adalah...",
-                options: [
-                    "A. Danau Toba",
-                    "B. Danau Singkarak",
-                    "C. Danau Poso",
-                    "D. Danau Sentani",
-                    "E. Danau Tempe"
-                ],
-                correctAnswer: 0,
-                explanation: "Danau Toba di Sumatera Utara adalah danau terbesar di Indonesia dengan luas 1.130 km² dan juga danau vulkanik terbesar di dunia."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh hak sebagai warga negara adalah...",
-                options: [
-                    "A. Membayar pajak",
-                    "B. Menjaga kebersihan",
-                    "C. Mendapat pendidikan",
-                    "D. Menjaga keamanan",
-                    "E. Menghormati orang lain"
-                ],
-                correctAnswer: 2,
-                explanation: "Mendapat pendidikan adalah hak setiap warga negara seperti yang dijamin dalam UUD 1945 Pasal 31. Hak adalah sesuatu yang seharusnya kita terima."
-            },
-            {
-                question: "Peninggalan sejarah Islam di Indonesia yang berupa makam para wali disebut...",
-                options: [
-                    "A. Candi",
-                    "B. Masjid",
-                    "C. Keraton",
-                    "D. Pesantren",
-                    "E. Makam kuno"
-                ],
-                correctAnswer: 4,
-                explanation: "Makam kuno para wali penyebar Islam seperti Sunan Kalijaga, Sunan Bonang, dan lainnya merupakan peninggalan sejarah Islam di Indonesia."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh kegiatan produksi adalah...",
-                options: [
-                    "A. Pedagang menjual sayur",
-                    "B. Pabrik membuat sepatu",
-                    "C. Truk mengangkut beras",
-                    "D. Ibu membeli baju",
-                    "E. Sopir mengantar penumpang"
-                ],
-                correctAnswer: 1,
-                explanation: "Produksi adalah kegiatan menciptakan atau menambah nilai guna suatu barang. Pabrik membuat sepatu adalah contoh kegiatan produksi."
-            },
-            {
-                question: "Pahlawan nasional dari Aceh yang dikenal sebagai 'Singa Betina' adalah...",
-                options: [
-                    "A. Cut Nyak Dien",
-                    "B. RA Kartini",
-                    "C. Dewi Sartika",
-                    "D. Martha Christina Tiahahu",
-                    "E. Nyi Ageng Serang"
-                ],
-                correctAnswer: 0,
-                explanation: "Cut Nyak Dien adalah pahlawan nasional dari Aceh yang gigih melawan Belanda dan dijuluki 'Singa Betina' karena keberaniannya."
-            },
-            {
-                question: "Berikut ini yang bukan termasuk jenis pekerjaan di bidang jasa adalah...",
-                options: [
-                    "A. Dokter",
-                    "B. Guru",
-                    "C. Tukang cukur",
-                    "D. Petani",
-                    "E. Sopir taksi"
-                ],
-                correctAnswer: 3,
-                explanation: "Petani bekerja di bidang pertanian (produksi bahan pangan), bukan di bidang jasa. Jasa adalah kegiatan yang memberikan pelayanan kepada konsumen."
-            },
-            {
-                question: "Peninggalan sejarah berupa bangunan tempat raja atau sultan tinggal disebut...",
-                options: [
-                    "A. Candi",
-                    "B. Benteng",
-                    "C. Keraton",
-                    "D. Masjid",
-                    "E. Prasasti"
-                ],
-                correctAnswer: 2,
-                explanation: "Keraton adalah istana tempat raja atau sultan tinggal dan pusat pemerintahan kerajaan di masa lalu, seperti Keraton Yogyakarta dan Keraton Surakarta."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh interaksi manusia dengan alam adalah...",
-                options: [
-                    "A. Siswa belajar kelompok",
-                    "B. Petani menanam padi",
-                    "C. Pedagang berjualan di pasar",
-                    "D. Guru mengajar di kelas",
-                    "E. Dokter memeriksa pasien"
-                ],
-                correctAnswer: 1,
-                explanation: "Petani menanam padi adalah contoh interaksi manusia dengan alam karena memanfaatkan tanah dan air untuk bercocok tanam."
-            },
-            {
-                question: "Peninggalan sejarah berupa tulisan tangan kuno di daun lontar disebut...",
-                options: [
-                    "A. Prasasti",
-                    "B. Naskah kuno",
-                    "C. Arca",
-                    "D. Relief",
-                    "E. Epigraf"
-                ],
-                correctAnswer: 1,
-                explanation: "Naskah kuno adalah tulisan tangan di atas bahan seperti daun lontar, kertas dluwang, atau kulit kayu yang berisi catatan sejarah, sastra, atau ajaran agama."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh sikap menghargai keragaman budaya adalah...",
-                options: [
-                    "A. Mengejek teman yang berbeda suku",
-                    "B. Hanya mau berteman dengan yang seagama",
-                    "C. Mempelajari tarian daerah lain",
-                    "D. Menganggap budaya sendiri paling baik",
-                    "E. Tidak mau melihat pertunjukan budaya lain"
-                ],
-                correctAnswer: 2,
-                explanation: "Mempelajari tarian daerah lain menunjukkan sikap menghargai dan tertarik untuk mengenal budaya lain, yang merupakan bentuk penghargaan terhadap keragaman budaya."
-            },
-            {
-                question: "Peninggalan sejarah berupa benteng peninggalan Portugis di Maluku adalah...",
-                options: [
-                    "A. Benteng Vredeburg",
-                    "B. Benteng Fort Rotterdam",
-                    "C. Benteng Belgica",
-                    "D. Benteng Marlborough",
-                    "E. Benteng Pendem"
-                ],
-                correctAnswer: 2,
-                explanation: "Benteng Belgica di Maluku adalah benteng peninggalan Portugis yang dibangun pada abad ke-16 dan kemudian dikuasai Belanda."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh kegiatan konsumsi adalah...",
-                options: [
-                    "A. Pabrik membuat roti",
-                    "B. Petani menanam jagung",
-                    "C. Ibu membeli sayur",
-                    "D. Truk mengangkut barang",
-                    "E. Nelayan menangkap ikan"
-                ],
-                correctAnswer: 2,
-                explanation: "Konsumsi adalah kegiatan menggunakan atau menghabiskan nilai guna suatu barang. Membeli dan memakan sayur adalah contoh kegiatan konsumsi."
-            },
-            {
-                question: "Pahlawan nasional yang memimpin Perang Diponegoro melawan Belanda adalah...",
-                options: [
-                    "A. Sultan Hasanuddin",
-                    "B. Pangeran Diponegoro",
-                    "C. Pattimura",
-                    "D. Tuanku Imam Bonjol",
-                    "E. Teuku Umar"
-                ],
-                correctAnswer: 1,
-                explanation: "Pangeran Diponegoro memimpin Perang Diponegoro (1825-1830) yang merupakan salah satu perang terbesar melawan Belanda di Jawa."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh sumber daya alam yang dapat diperbarui adalah...",
-                options: [
-                    "A. Batu bara",
-                    "B. Minyak bumi",
-                    "C. Gas alam",
-                    "D. Hasil hutan",
-                    "E. Timah"
-                ],
-                correctAnswer: 3,
-                explanation: "Hasil hutan seperti kayu termasuk sumber daya alam yang dapat diperbarui karena dapat tumbuh kembali melalui penanaman dan pemeliharaan."
-            },
-            {
-                question: "Peninggalan sejarah berupa alat tukar sebelum dikenal uang disebut...",
-                options: [
-                    "A. Cek",
-                    "B. Giro",
-                    "C. Koin",
-                    "D. Uang logam",
-                    "E. Barter"
-                ],
-                correctAnswer: 4,
-                explanation: "Sebelum uang dikenal, masyarakat melakukan barter yaitu tukar menukar barang dengan barang lainnya yang dianggap bernilai sama."
-            },
-            {
-                question: "Berikut ini yang bukan termasuk manfaat pasar bagi masyarakat adalah...",
-                options: [
-                    "A. Tempat bertemunya penjual dan pembeli",
-                    "B. Tempat distribusi barang",
-                    "C. Menyediakan berbagai kebutuhan",
-                    "D. Menentukan harga barang",
-                    "E. Menyulitkan mendapatkan barang"
-                ],
-                correctAnswer: 4,
-                explanation: "Pasar justru memudahkan masyarakat mendapatkan berbagai kebutuhan, bukan menyulitkan. Pasar memiliki banyak manfaat ekonomi bagi masyarakat."
-            },
-            {
-                question: "Peninggalan sejarah berupa kitab suci agama Hindu adalah...",
-                options: [
-                    "A. Al-Quran",
-                    "B. Weda",
-                    "C. Tripitaka",
-                    "D. Injil",
-                    "E. Alkitab"
-                ],
-                correctAnswer: 1,
-                explanation: "Weda adalah kitab suci agama Hindu yang dipercaya sebagai wahyu dari Dewa Brahma. Weda terdiri dari empat bagian utama."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh sikap demokratis di sekolah adalah...",
-                options: [
-                    "A. Memaksakan pendapat sendiri",
-                    "B. Memilih ketua kelas secara voting",
-                    "C. Tidak mau mendengar pendapat orang lain",
-                    "D. Hanya mau bekerja sama dengan teman dekat",
-                    "E. Meremehkan pendapat yang berbeda"
-                ],
-                correctAnswer: 1,
-                explanation: "Memilih ketua kelas melalui voting adalah contoh sikap demokratis karena melibatkan seluruh anggota kelas dalam pengambilan keputusan secara adil."
-            },
-            {
-                question: "Peninggalan sejarah berupa candi Buddha terbesar di dunia adalah...",
-                options: [
-                    "A. Candi Prambanan",
-                    "B. Candi Borobudur",
-                    "C. Candi Mendut",
-                    "D. Candi Pawon",
-                    "E. Candi Sewu"
-                ],
-                correctAnswer: 1,
-                explanation: "Candi Borobudur di Magelang, Jawa Tengah adalah candi Buddha terbesar di dunia yang dibangun pada abad ke-9 pada masa Dinasti Syailendra."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh globalisasi di bidang komunikasi adalah...",
-                options: [
-                    "A. Penggunaan handphone",
-                    "B. Impor beras dari Vietnam",
-                    "C. Wisatawan asing berkunjung",
-                    "D. Pembelian pesawat dari luar negeri",
-                    "E. Ekspor tekstil ke Amerika"
-                ],
-                correctAnswer: 0,
-                explanation: "Penggunaan handphone adalah contoh globalisasi di bidang komunikasi karena memungkinkan berkomunikasi dengan orang di seluruh dunia dengan mudah dan cepat."
-            },
-            {
-                question: "Peninggalan sejarah berupa sistem penulisan kuno di Indonesia adalah...",
-                options: [
-                    "A. Aksara Latin",
-                    "B. Aksara Jawa (Hanacaraka)",
-                    "C. Aksara Mandarin",
-                    "D. Aksara Arab",
-                    "E. Aksara Cyrillic"
-                ],
-                correctAnswer: 1,
-                explanation: "Aksara Jawa atau Hanacaraka adalah sistem penulisan asli Jawa yang digunakan sejak masa kerajaan Hindu-Buddha dan masih dipelajari hingga sekarang."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh kegiatan ekonomi kreatif adalah...",
-                options: [
-                    "A. Pertanian padi",
-                    "B. Peternakan ayam",
-                    "C. Industri tekstil",
-                    "D. Kerajinan batik",
-                    "E. Pertambangan batu bara"
-                ],
-                correctAnswer: 3,
-                explanation: "Kerajinan batik termasuk ekonomi kreatif karena memadukan seni, budaya, dan keterampilan tangan untuk menciptakan produk bernilai tinggi."
-            },
-            {
-                question: "Peninggalan sejarah berupa alat musik tradisional dari Jawa Barat adalah...",
-                options: [
-                    "A. Angklung",
-                    "B. Gamelan",
-                    "C. Sasando",
-                    "D. Tifa",
-                    "E. Kolintang"
-                ],
-                correctAnswer: 0,
-                explanation: "Angklung adalah alat musik tradisional dari Jawa Barat yang terbuat dari bambu dan telah diakui UNESCO sebagai Warisan Budaya Dunia."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh pelestarian budaya adalah...",
-                options: [
-                    "A. Mempelajari bahasa daerah",
-                    "B. Hanya menggunakan bahasa asing",
-                    "C. Tidak mau mengenal budaya lain",
-                    "D. Menganggap budaya kuno tidak penting",
-                    "E. Membiarkan kesenian tradisional punah"
-                ],
-                correctAnswer: 0,
-                explanation: "Mempelajari bahasa daerah adalah bentuk pelestarian budaya karena bahasa merupakan bagian penting dari identitas dan warisan budaya suatu daerah."
-            },
-            {
-                question: "Peninggalan sejarah berupa upacara adat dari Bali adalah...",
-                options: [
-                    "A. Sekaten",
-                    "B. Ngaben",
-                    "C. Rambu Solo",
-                    "D. Kasada",
-                    "E. Seren Taun"
-                ],
-                correctAnswer: 1,
-                explanation: "Ngaben adalah upacara adat Bali berupa kremasi atau pembakaran jenazah sebagai bagian dari ritual agama Hindu Dharma."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh teknologi tepat guna di pedesaan adalah...",
-                options: [
-                    "A. Komputer canggih",
-                    "B. Traktor tangan",
-                    "C. Pesawat terbang",
-                    "D. Kereta api cepat",
-                    "E. Smartphone mahal"
-                ],
-                correctAnswer: 1,
-                explanation: "Traktor tangan adalah contoh teknologi tepat guna di pedesaan karena membantu petani mengolah tanah dengan biaya terjangkau dan sesuai kebutuhan."
-            },
-            {
-                question: "Peninggalan sejarah berupa seni pertunjukan wayang kulit berasal dari...",
-                options: [
-                    "A. Sumatera",
-                    "B. Jawa",
-                    "C. Kalimantan",
-                    "D. Sulawesi",
-                    "E. Papua"
-                ],
-                correctAnswer: 1,
-                explanation: "Wayang kulit adalah seni pertunjukan tradisional asli Jawa yang telah ada sejak zaman Hindu-Buddha dan diakui UNESCO sebagai Warisan Budaya Dunia."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh sikap cinta tanah air adalah...",
-                options: [
-                    "A. Membeli produk luar negeri",
-                    "B. Menggunakan bahasa asing sehari-hari",
-                    "C. Mencintai produk dalam negeri",
-                    "D. Berlibur ke luar negeri",
-                    "E. Meniru budaya asing sepenuhnya"
-                ],
-                correctAnswer: 2,
-                explanation: "Mencintai dan menggunakan produk dalam negeri adalah bentuk sikap cinta tanah air karena mendukung perekonomian bangsa sendiri."
-            },
-            {
-                question: "Peninggalan sejarah berupa rumah adat dari Sumatera Barat adalah...",
-                options: [
-                    "A. Joglo",
-                    "B. Rumah Gadang",
-                    "C. Tongkonan",
-                    "D. Honai",
-                    "E. Limas"
-                ],
-                correctAnswer: 1,
-                explanation: "Rumah Gadang adalah rumah adat Minangkabau dari Sumatera Barat yang memiliki bentuk atap khas menyerupai tanduk kerbau."
-            },
-            {
-                question: "Berikut ini yang termasuk contoh pelestarian lingkungan adalah...",
-                options: [
-                    "A. Membuang sampah sembarangan",
-                    "B. Menebang pohon sembarangan",
-                    "C. Melakukan reboisasi",
-                    "D. Membakar hutan",
-                    "E. Menggunakan plastik sekali pakai"
-                ],
-                correctAnswer: 2,
-                explanation: "Reboisasi atau penanaman kembali hutan yang gundul adalah contoh upaya pelestarian lingkungan untuk menjaga keseimbangan ekosistem."
-            }
+                        question: "Apa nama ibukota Indonesia?",
+                        options: [
+                            "A. Jakarta",
+                            "B. Bandung",
+                            "C. Surabaya",
+                            "D. Medan",
+                            "E. Yogyakarta"
+                        ],
+                        correctAnswer: 0,
+                        explanation: "Ibukota Indonesia adalah Jakarta. Pada tahun 2024, ibukota akan dipindahkan ke Nusantara di Kalimantan Timur."
+                    },
+                    {
+                        question: "Provinsi paling timur di Indonesia adalah...",
+                        options: [
+                            "A. Nusa Tenggara Timur",
+                            "B. Maluku",
+                            "C. Papua",
+                            "D. Kalimantan Timur",
+                            "E. Sulawesi Tenggara"
+                        ],
+                        correctAnswer: 2,
+                        explanation: "Provinsi paling timur di Indonesia adalah Papua yang berbatasan langsung dengan Papua Nugini."
+                    },
+                    {
+                        question: "Peninggalan sejarah berupa bangunan yang berbentuk seperti piramida bertingkat disebut...",
+                        options: [
+                            "A. Candi",
+                            "B. Benteng",
+                            "C. Prasasti",
+                            "D. Stupa",
+                            "E. Punden berundak"
+                        ],
+                        correctAnswer: 4,
+                        explanation: "Punden berundak adalah bangunan bertingkat yang merupakan ciri khas arsitektur megalitikum di Indonesia."
+                    },
+                    {
+                        question: "Mata uang resmi negara Indonesia adalah...",
+                        options: [
+                            "A. Ringgit",
+                            "B. Rupiah",
+                            "C. Dollar",
+                            "D. Yen",
+                            "E. Euro"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Mata uang resmi Indonesia adalah Rupiah (IDR) yang dikeluarkan oleh Bank Indonesia."
+                    },
+                    {
+                        question: "Berikut ini yang termasuk kenampakan alam adalah...",
+                        options: [
+                            "A. Jalan raya",
+                            "B. Gedung sekolah",
+                            "C. Gunung",
+                            "D. Jembatan",
+                            "E. Bandara"
+                        ],
+                        correctAnswer: 2,
+                        explanation: "Gunung termasuk kenampakan alam, sedangkan lainnya adalah kenampakan buatan manusia."
+                    },
+                    {
+                        question: "Lagu kebangsaan Indonesia adalah...",
+                        options: [
+                            "A. Indonesia Jaya",
+                            "B. Garuda Pancasila",
+                            "C. Indonesia Raya",
+                            "D. Tanah Airku",
+                            "E. Bagimu Negeri"
+                        ],
+                        correctAnswer: 2,
+                        explanation: "Lagu kebangsaan Indonesia adalah Indonesia Raya yang diciptakan oleh Wage Rudolf Supratman."
+                    },
+                    {
+                        question: "Pahlawan nasional yang dikenal dengan sebutan Bapak Pendidikan Nasional adalah...",
+                        options: [
+                            "A. Ki Hajar Dewantara",
+                            "B. R.A. Kartini",
+                            "C. Cut Nyak Dien",
+                            "D. Pangeran Diponegoro",
+                            "E. Sultan Hasanuddin"
+                        ],
+                        correctAnswer: 0,
+                        explanation: "Ki Hajar Dewantara dijuluki Bapak Pendidikan Nasional dan mendirikan Taman Siswa. Hari lahirnya diperingati sebagai Hari Pendidikan Nasional."
+                    },
+                    {
+                        question: "Suku bangsa yang berasal dari Bali disebut...",
+                        options: [
+                            "A. Batak",
+                            "B. Dayak",
+                            "C. Bugis",
+                            "D. Bali",
+                            "E. Asmat"
+                        ],
+                        correctAnswer: 3,
+                        explanation: "Suku Bali adalah suku bangsa yang mendiami pulau Bali dan menggunakan bahasa Bali dalam kehidupan sehari-hari."
+                    },
+                    {
+                        question: "Kegiatan ekonomi yang menghasilkan barang langsung dari alam adalah...",
+                        options: [
+                            "A. Pertanian",
+                            "B. Perdagangan",
+                            "C. Perbankan",
+                            "D. Transportasi",
+                            "E. Jasa"
+                        ],
+                        correctAnswer: 0,
+                        explanation: "Pertanian termasuk kegiatan produksi primer yang menghasilkan bahan mentah langsung dari alam."
+                    },
+                    {
+                        question: "Pancasila sebagai dasar negara Indonesia ditetapkan pada tanggal...",
+                        options: [
+                            "A. 17 Agustus 1945",
+                            "B. 18 Agustus 1945",
+                            "C. 1 Juni 1945",
+                            "D. 28 Oktober 1928",
+                            "E. 10 November 1945"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Pancasila ditetapkan sebagai dasar negara pada tanggal 18 Agustus 1945 oleh PPKI sehari setelah proklamasi kemerdekaan."
+                    }
                 ]
             },
             'SMP': {
                 'IPS': [
                     {
-                question: "Peristiwa Rengasdengklok terjadi karena...",
-                options: [
-                    "A. Perbedaan pendapat antara golongan tua dan muda tentang pelaksanaan proklamasi",
-                    "B. Perselisihan antara Jepang dan tokoh Indonesia tentang kemerdekaan",
-                    "C. Pertentangan antara Soekarno dan Hatta tentang isi proklamasi",
-                    "D. Ketidaksetujuan Belanda terhadap rencana proklamasi kemerdekaan",
-                    "E. Perdebatan tentang bentuk negara setelah merdeka"
-                ],
-                correctAnswer: 0,
-                explanation: "Peristiwa Rengasdengklok terjadi karena golongan muda ingin segera memproklamasikan kemerdekaan, sementara golongan tua ingin menunggu kepastian dari Jepang."
-            },
-            {
-                question: "Faktor utama yang menyebabkan terjadinya Perang Dunia II adalah...",
-                options: [
-                    "A. Kegagalan Liga Bangsa-Bangsa dalam menjaga perdamaian dunia",
-                    "B. Kebijakan ekspansionis Jerman di bawah Hitler",
-                    "C. Persaingan ekonomi antara Amerika Serikat dan Inggris",
-                    "D. Konflik antara negara-negara Balkan",
-                    "E. Perebutan wilayah jajahan di Afrika"
-                ],
-                correctAnswer: 1,
-                explanation: "Kebijakan ekspansionis Jerman di bawah Hitler yang ingin menguasai Eropa menjadi pemicu utama Perang Dunia II."
-            },
-            {
-                question: "Dampak utama Revolusi Industri di Eropa terhadap Indonesia adalah...",
-                options: [
-                    "A. Meningkatnya permintaan rempah-rempah dari Indonesia",
-                    "B. Berubahnya sistem tanam paksa menjadi sistem liberal",
-                    "C. Masuknya investasi asing untuk pembangunan pabrik di Indonesia",
-                    "D. Meningkatnya urbanisasi dari desa ke kota",
-                    "E. Berkembangnya pendidikan modern di Indonesia"
-                ],
-                correctAnswer: 1,
-                explanation: "Revolusi Industri membuat Belanda menerapkan sistem liberal untuk memenuhi kebutuhan bahan mentah industri di Eropa."
-            },
-            {
-                question: "Perjanjian Renville merugikan Indonesia karena...",
-                options: [
-                    "A. Wilayah Indonesia menjadi semakin sempit",
-                    "B. Belanda tetap menguasai sebagian besar wilayah Indonesia",
-                    "C. Indonesia harus membayar hutang kepada Belanda",
-                    "D. Belanda mendapat hak untuk mengeruk sumber daya alam Indonesia",
-                    "E. Indonesia harus bergabung dalam persemakmuran Belanda"
-                ],
-                correctAnswer: 0,
-                explanation: "Perjanjian Renville membuat wilayah Republik Indonesia hanya meliputi sebagian kecil Jawa Tengah dan Sumatra."
-            },
-            {
-                question: "Penyebab utama krisis ekonomi 1998 di Indonesia adalah...",
-                options: [
-                    "A. Korupsi yang merajalela di pemerintahan",
-                    "B. Melemahnya nilai tukar rupiah terhadap dolar AS",
-                    "C. Kebijakan ekonomi yang tidak tepat",
-                    "D. Hutang luar negeri yang terlalu besar",
-                    "E. Ketergantungan pada impor yang tinggi"
-                ],
-                correctAnswer: 1,
-                explanation: "Krisis dimulai dari melemahnya nilai tukar rupiah secara drastis terhadap dolar AS yang memicu berbagai masalah ekonomi lainnya."
-            },
-            {
-                question: "Pengaruh letak geografis Indonesia terhadap kondisi sosial budaya adalah...",
-                options: [
-                    "A. Terjadinya akulturasi budaya asing dengan budaya lokal",
-                    "B. Berkembangnya berbagai bahasa daerah yang berbeda",
-                    "C. Terbentuknya masyarakat yang homogen",
-                    "D. Menyebarnya agama-agama dari luar secara cepat",
-                    "E. Munculnya kesenjangan sosial antara daerah"
-                ],
-                correctAnswer: 0,
-                explanation: "Letak strategis Indonesia di jalur perdagangan dunia menyebabkan terjadinya akulturasi berbagai budaya asing dengan budaya lokal."
-            },
-            {
-                question: "Tujuan utama pembentukan ASEAN adalah...",
-                options: [
-                    "A. Menjalin kerja sama militer untuk pertahanan regional",
-                    "B. Meningkatkan pertumbuhan ekonomi negara anggota",
-                    "C. Membentuk pasar tunggal di Asia Tenggara",
-                    "D. Mempercepat integrasi politik regional",
-                    "E. Menciptakan stabilitas dan perdamaian di kawasan"
-                ],
-                correctAnswer: 4,
-                explanation: "Tujuan utama ASEAN adalah menciptakan stabilitas dan perdamaian di kawasan Asia Tenggara melalui kerja sama berbagai bidang."
-            },
-            {
-                question: "Faktor utama yang menyebabkan Jepang menyerah kepada Sekutu pada tahun 1945 adalah...",
-                options: [
-                    "A. Kekalahan tentara Jepang dalam berbagai pertempuran",
-                    "B. Dijatuhkannya bom atom di Hiroshima dan Nagasaki",
-                    "C. Kehabisan sumber daya untuk melanjutkan perang",
-                    "D. Tekanan dari Uni Soviet untuk mengakhiri perang",
-                    "E. Pemberontakan rakyat di berbagai wilayah jajahan"
-                ],
-                correctAnswer: 1,
-                explanation: "Dijatuhkannya bom atom di Hiroshima (6 Agustus 1945) dan Nagasaki (9 Agustus 1945) membuat Jepang menyerah tanpa syarat kepada Sekutu."
-            },
-            {
-                question: "Sistem ekonomi yang diterapkan Orde Baru adalah...",
-                options: [
-                    "A. Ekonomi kerakyatan",
-                    "B. Ekonomi liberal",
-                    "C. Ekonomi komando",
-                    "D. Ekonomi campuran",
-                    "E. Ekonomi pasar terpimpin"
-                ],
-                correctAnswer: 3,
-                explanation: "Orde Baru menerapkan sistem ekonomi campuran dengan peran dominan pemerintah dalam mengatur perekonomian."
-            },
-            {
-                question: "Penyebab utama konflik antara Indonesia dan Malaysia pada masa Konfrontasi adalah...",
-                options: [
-                    "A. Perebutan wilayah perbatasan",
-                    "B. Pembentukan Federasi Malaysia yang dianggap mengancam",
-                    "C. Persaingan ekonomi antara kedua negara",
-                    "D. Perbedaan ideologi politik",
-                    "E. Masalah pengungsi dari Malaysia"
-                ],
-                correctAnswer: 1,
-                explanation: "Indonesia menentang pembentukan Federasi Malaysia yang dianggap sebagai boneka Inggris dan mengancam stabilitas regional."
-            },
-            {
-                question: "Peran utama Sriwijaya dalam perkembangan sejarah Asia Tenggara adalah sebagai...",
-                options: [
-                    "A. Pusat perdagangan rempah-rempah",
-                    "B. Pusat penyebaran agama Hindu-Buddha",
-                    "C. Kerajaan maritim yang kuat",
-                    "D. Pusat pendidikan dan kebudayaan",
-                    "E. Penghasil komoditas pertanian utama"
-                ],
-                correctAnswer: 1,
-                explanation: "Sriwijaya menjadi pusat penyebaran agama Buddha di Asia Tenggara dan tempat belajar para biksu dari berbagai negara."
-            },
-            {
-                question: "Dampak positif globalisasi di bidang budaya adalah...",
-                options: [
-                    "A. Memperkaya khazanah budaya nasional",
-                    "B. Menyebabkan lunturnya budaya lokal",
-                    "C. Meningkatkan kesenjangan budaya",
-                    "D. Menyeragamkan budaya dunia",
-                    "E. Mengurangi keragaman budaya"
-                ],
-                correctAnswer: 0,
-                explanation: "Globalisasi memungkinkan pertukaran budaya yang dapat memperkaya khazanah budaya nasional jika disikapi dengan bijak."
-            },
-            {
-                question: "Fungsi utama pasar modal dalam perekonomian adalah...",
-                options: [
-                    "A. Menyediakan lapangan pekerjaan",
-                    "B. Menjadi tempat transaksi valuta asing",
-                    "C. Menghubungkan pihak yang membutuhkan dana dengan investor",
-                    "D. Mengatur jumlah uang beredar",
-                    "E. Menstabilkan harga barang"
-                ],
-                correctAnswer: 2,
-                explanation: "Pasar modal berfungsi sebagai penghubung antara pihak yang membutuhkan dana (emiten) dengan investor yang memiliki kelebihan dana."
-            },
-            {
-                question: "Penyebab utama urbanisasi di negara berkembang adalah...",
-                options: [
-                    "A. Tingginya upah kerja di kota",
-                    "B. Kurangnya fasilitas pendidikan di desa",
-                    "C. Ketersediaan lapangan kerja yang lebih banyak di kota",
-                    "D. Keinginan untuk meningkatkan status sosial",
-                    "E. Keterbatasan lahan pertanian di desa"
-                ],
-                correctAnswer: 2,
-                explanation: "Ketersediaan lapangan kerja yang lebih beragam dan lebih banyak di kota menjadi daya tarik utama penduduk desa untuk melakukan urbanisasi."
-            },
-            {
-                question: "Peran Indonesia dalam Gerakan Non-Blok adalah...",
-                options: [
-                    "A. Sebagai pendiri dan pemimpin utama",
-                    "B. Sebagai mediator konflik antar anggota",
-                    "C. Sebagai penyedia dana untuk kegiatan",
-                    "D. Sebagai pengawas pelaksanaan program",
-                    "E. Sebagai penentu kebijakan organisasi"
-                ],
-                correctAnswer: 0,
-                explanation: "Indonesia merupakan salah satu pendiri Gerakan Non-Blok bersama Mesir, India, Ghana, dan Yugoslavia dalam Konferensi Asia Afrika 1955."
-            },
-            {
-                question: "Faktor utama yang mempengaruhi pertumbuhan penduduk suatu negara adalah...",
-                options: [
-                    "A. Tingkat pendidikan dan kesehatan",
-                    "B. Kebijakan pemerintah tentang kependudukan",
-                    "C. Angka kelahiran dan kematian",
-                    "D. Tingkat migrasi masuk dan keluar",
-                    "E. Kondisi ekonomi dan politik"
-                ],
-                correctAnswer: 2,
-                explanation: "Pertumbuhan penduduk alami ditentukan oleh selisih antara angka kelahiran dan kematian, sementara pertumbuhan total juga dipengaruhi migrasi."
-            },
-            {
-                question: "Dampak negatif pembangunan industri terhadap lingkungan adalah...",
-                options: [
-                    "A. Meningkatnya pencemaran air dan udara",
-                    "B. Berkurangnya lahan pertanian produktif",
-                    "C. Terganggunya ekosistem alami",
-                    "D. Menurunnya kualitas sumber daya manusia",
-                    "E. Meningkatnya suhu rata-rata daerah"
-                ],
-                correctAnswer: 0,
-                explanation: "Pembangunan industri seringkali menyebabkan pencemaran air akibat limbah cair dan pencemaran udara dari emisi gas buang."
-            },
-            {
-                question: "Tujuan utama kebijakan proteksi ekonomi suatu negara adalah...",
-                options: [
-                    "A. Melindungi industri dalam negeri dari persaingan luar",
-                    "B. Meningkatkan ekspor produk domestik",
-                    "C. Menarik investasi asing langsung",
-                    "D. Menstabilkan harga barang kebutuhan",
-                    "E. Mengurangi ketergantungan pada impor"
-                ],
-                correctAnswer: 0,
-                explanation: "Kebijakan proteksi seperti tarif dan kuota bertujuan melindungi industri dalam negeri yang masih berkembang dari persaingan produk impor."
-            },
-            {
-                question: "Perbedaan utama antara negara maju dan berkembang terletak pada...",
-                options: [
-                    "A. Tingkat pendapatan per kapita",
-                    "B. Jumlah penduduk",
-                    "C. Luas wilayah",
-                    "D. Sistem pemerintahan",
-                    "E. Kekayaan sumber daya alam"
-                ],
-                correctAnswer: 0,
-                explanation: "Indikator utama pembeda negara maju dan berkembang adalah pendapatan per kapita yang mencerminkan kesejahteraan ekonomi penduduk."
-            },
-            {
-                question: "Penyebab utama konflik sosial di masyarakat adalah...",
-                options: [
-                    "A. Perbedaan pendapat dan kepentingan",
-                    "B. Kesenjangan ekonomi yang besar",
-                    "C. Kurangnya komunikasi antar kelompok",
-                    "D. Kebijakan pemerintah yang diskriminatif",
-                    "E. Pengaruh budaya asing yang kuat"
-                ],
-                correctAnswer: 0,
-                explanation: "Konflik sosial pada dasarnya muncul karena adanya perbedaan pendapat, nilai, atau kepentingan antar individu/kelompok dalam masyarakat."
-            },
-            {
-                question: "Fungsi utama uang dalam perekonomian adalah sebagai...",
-                options: [
-                    "A. Alat tukar, satuan hitung, dan penyimpan nilai",
-                    "B. Penentu harga, alat investasi, dan pembayaran",
-                    "C. Pengukur kekayaan, alat spekulasi, dan pembayaran utang",
-                    "D. Penstabil ekonomi, pengendali inflasi, dan pencipta lapangan kerja",
-                    "E. Alat kontrol sosial, distribusi kekayaan, dan pengatur perdagangan"
-                ],
-                correctAnswer: 0,
-                explanation: "Tiga fungsi utama uang adalah sebagai alat tukar (medium of exchange), satuan hitung (unit of account), dan penyimpan nilai (store of value)."
-            },
-            {
-                question: "Dampak positif kolonialisme di bidang pendidikan adalah...",
-                options: [
-                    "A. Memperkenalkan sistem pendidikan modern",
-                    "B. Meningkatkan jumlah sekolah di pedesaan",
-                    "C. Menyamakan kesempatan pendidikan untuk semua",
-                    "D. Mengembangkan kurikulum berbasis lokal",
-                    "E. Meningkatkan kualitas guru pribumi"
-                ],
-                correctAnswer: 0,
-                explanation: "Salah satu dampak positif kolonialisme adalah memperkenalkan sistem pendidikan modern walaupun awalnya terbatas untuk kalangan tertentu."
-            },
-            {
-                question: "Peran utama Bank Indonesia sebagai bank sentral adalah...",
-                options: [
-                    "A. Menyediakan kredit untuk usaha kecil",
-                    "B. Mengatur dan menjaga stabilitas nilai rupiah",
-                    "C. Mencetak dan mendistribusikan uang",
-                    "D. Menjadi tempat menyimpan uang pemerintah",
-                    "E. Mengawasi seluruh kegiatan perbankan"
-                ],
-                correctAnswer: 1,
-                explanation: "Tugas utama Bank Indonesia adalah mencapai dan memelihara kestabilan nilai rupiah melalui kebijakan moneter."
-            },
-            {
-                question: "Faktor utama penyebab keberagaman budaya Indonesia adalah...",
-                options: [
-                    "A. Kondisi geografis yang berbentuk kepulauan",
-                    "B. Pengaruh budaya asing yang berbeda-beda",
-                    "C. Kebijakan pemerintah tentang kebudayaan",
-                    "D. Perbedaan tingkat pendidikan antar daerah",
-                    "E. Variasi kondisi ekonomi daerah"
-                ],
-                correctAnswer: 0,
-                explanation: "Kondisi geografis Indonesia yang terdiri dari ribuan pulau terpisah menyebabkan berkembangnya budaya yang berbeda-beda di tiap daerah."
-            },
-            {
-                question: "Tujuan utama diplomasi dalam hubungan internasional adalah...",
-                options: [
-                    "A. Memenangkan persaingan dengan negara lain",
-                    "B. Mencapai kepentingan nasional tanpa konflik",
-                    "C. Memperluas pengaruh ke negara lain",
-                    "D. Menjalin persekutuan militer",
-                    "E. Meningkatkan perdagangan internasional"
-                ],
-                correctAnswer: 1,
-                explanation: "Diplomasi bertujuan untuk mencapai kepentingan nasional suatu negara melalui cara-cara damai dan tanpa konflik."
-            },
-            {
-                question: "Penyebab utama inflasi dari sisi permintaan adalah...",
-                options: [
-                    "A. Meningkatnya biaya produksi",
-                    "B. Naiknya harga bahan baku impor",
-                    "C. Bertambahnya jumlah uang beredar",
-                    "D. Turunnya nilai tukar mata uang",
-                    "E. Menurunnya produktivitas tenaga kerja"
-                ],
-                correctAnswer: 2,
-                explanation: "Inflasi dari sisi permintaan (demand-pull inflation) terjadi ketika permintaan agregat meningkat karena bertambahnya jumlah uang beredar."
-            },
-            {
-                question: "Peran penting teknologi informasi dalam globalisasi adalah...",
-                options: [
-                    "A. Mempercepat pertukaran informasi antar negara",
-                    "B. Meningkatkan keamanan data nasional",
-                    "C. Menciptakan lapangan kerja baru",
-                    "D. Mengurangi biaya transportasi",
-                    "E. Meningkatkan kualitas pendidikan"
-                ],
-                correctAnswer: 0,
-                explanation: "Teknologi informasi memungkinkan pertukaran data dan komunikasi yang cepat tanpa batas geografis, menjadi tulang punggung globalisasi."
-            },
-            {
-                question: "Sistem pemerintahan Indonesia berdasarkan UUD 1945 adalah...",
-                options: [
-                    "A. Presidensial",
-                    "B. Parlementer",
-                    "C. Monarki konstitusional",
-                    "D. Federal",
-                    "E. Komunis"
-                ],
-                correctAnswer: 0,
-                explanation: "Indonesia menganut sistem pemerintahan presidensial dimana presiden sebagai kepala negara dan kepala pemerintahan dipilih langsung oleh rakyat."
-            },
-            {
-                question: "Faktor utama yang mempengaruhi permintaan suatu barang adalah...",
-                options: [
-                    "A. Harga barang itu sendiri, pendapatan, dan selera",
-                    "B. Biaya produksi, teknologi, dan jumlah produsen",
-                    "C. Pajak, subsidi, dan peraturan pemerintah",
-                    "D. Ketersediaan bahan baku, tenaga kerja, dan modal",
-                    "E. Ekspor, impor, dan nilai tukar mata uang"
-                ],
-                correctAnswer: 0,
-                explanation: "Permintaan dipengaruhi oleh harga barang itu sendiri (hukum permintaan), pendapatan konsumen, dan selera/preferensi."
-            },
-            {
-                question: "Dampak negatif perdagangan internasional adalah...",
-                options: [
-                    "A. Ketergantungan pada negara lain",
-                    "B. Masuknya budaya asing yang tidak sesuai",
-                    "C. Terjadinya defisit neraca perdagangan",
-                    "D. Melemahnya industri dalam negeri",
-                    "E. Meningkatnya pengangguran di sektor tradisional"
-                ],
-                correctAnswer: 3,
-                explanation: "Perdagangan internasional dapat melemahkan industri dalam negeri yang tidak mampu bersaing dengan produk impor yang lebih murah/berkualitas."
-            },
-            {
-                question: "Tujuan utama otonomi daerah adalah...",
-                options: [
-                    "A. Meningkatkan efisiensi pemerintahan",
-                    "B. Mempercepat pembangunan daerah",
-                    "C. Mendorong partisipasi masyarakat lokal",
-                    "D. Mengurangi beban pemerintah pusat",
-                    "E. Menciptakan keseragaman pembangunan"
-                ],
-                correctAnswer: 2,
-                explanation: "Otonomi daerah bertujuan mendorong partisipasi masyarakat lokal dalam pengambilan keputusan untuk kepentingan daerahnya sendiri."
-            },
-            {
-                question: "Penyebab utama kemiskinan struktural adalah...",
-                options: [
-                    "A. Kurangnya lapangan pekerjaan",
-                    "B. Kebijakan pemerintah yang tidak tepat",
-                    "C. Ketidakmerataan distribusi pendapatan",
-                    "D. Rendahnya tingkat pendidikan",
-                    "E. Keterbatasan sumber daya alam"
-                ],
-                correctAnswer: 1,
-                explanation: "Kemiskinan struktural disebabkan oleh kebijakan atau sistem ekonomi-politik yang tidak memberikan kesempatan yang sama bagi seluruh masyarakat."
-            },
-            {
-                question: "Peran koperasi dalam perekonomian Indonesia adalah...",
-                options: [
-                    "A. Sebagai pelaku ekonomi berdasarkan asas kekeluargaan",
-                    "B. Penyedia lapangan kerja terbesar",
-                    "C. Penghasil devisa utama negara",
-                    "D. Pengendali harga pasar",
-                    "E. Penyalur bantuan pemerintah"
-                ],
-                correctAnswer: 0,
-                explanation: "Koperasi berperan sebagai pelaku ekonomi yang berlandaskan asas kekeluargaan dan demokrasi ekonomi sesuai amanat UUD 1945."
-            },
-            {
-                question: "Faktor utama yang mempengaruhi pembentukan kepribadian seseorang adalah...",
-                options: [
-                    "A. Keturunan dan lingkungan",
-                    "B. Pendidikan dan pengalaman",
-                    "C. Keluarga dan teman sebaya",
-                    "D. Media massa dan teknologi",
-                    "E. Budaya dan agama"
-                ],
-                correctAnswer: 0,
-                explanation: "Kepribadian dibentuk oleh faktor bawaan (keturunan) dan faktor lingkungan (pengalaman, pendidikan, sosialisasi) secara bersama-sama."
-            },
-            {
-                question: "Dampak positif interaksi desa-kota adalah...",
-                options: [
-                    "A. Meningkatnya arus barang dan jasa",
-                    "B. Menyebarnya teknologi ke desa",
-                    "C. Meningkatnya pendapatan penduduk desa",
-                    "D. Berkembangnya infrastruktur di desa",
-                    "E. Meningkatnya kualitas hidup di kedua wilayah"
-                ],
-                correctAnswer: 1,
-                explanation: "Interaksi desa-kota memungkinkan transfer teknologi dari kota ke desa yang dapat meningkatkan produktivitas pertanian dan usaha desa."
-            },
-            {
-                question: "Tujuan utama reformasi tahun 1998 di Indonesia adalah...",
-                options: [
-                    "A. Mengganti pemerintahan Orde Baru",
-                    "B. Memperbaiki sistem politik dan ekonomi",
-                    "C. Menghapuskan korupsi, kolusi, dan nepotisme",
-                    "D. Meningkatkan kesejahteraan rakyat",
-                    "E. Menciptakan pemerintahan yang demokratis"
-                ],
-                correctAnswer: 1,
-                explanation: "Reformasi 1998 bertujuan memperbaiki seluruh sistem politik, hukum, dan ekonomi yang dianggap menjadi penyebab krisis."
-            },
-            {
-                question: "Penyebab utama sengketa perbatasan antar negara adalah...",
-                options: [
-                    "A. Perbedaan penafsiran perjanjian batas",
-                    "B. Kekayaan sumber daya alam di perbatasan",
-                    "C. Kepentingan strategis militer",
-                    "D. Pertumbuhan penduduk yang cepat",
-                    "E. Klaim sejarah yang berbeda"
-                ],
-                correctAnswer: 0,
-                explanation: "Sebagian besar sengketa perbatasan muncul karena perbedaan penafsiran terhadap perjanjian atau peta batas yang sudah ada."
-            },
-            {
-                question: "Fungsi utama pajak dalam pembangunan adalah...",
-                options: [
-                    "A. Sumber pendapatan negara untuk pembiayaan pembangunan",
-                    "B. Alat untuk mengurangi kesenjangan sosial",
-                    "C. Pengatur kegiatan ekonomi masyarakat",
-                    "D. Penstabil harga barang dan jasa",
-                    "E. Pengendali jumlah uang beredar"
-                ],
-                correctAnswer: 0,
-                explanation: "Fungsi utama pajak adalah sebagai sumber pendapatan negara (budgeter) untuk membiayai pengeluaran pemerintah termasuk pembangunan."
-            },
-            {
-                question: "Dampak negatif perubahan sosial yang terlalu cepat adalah...",
-                options: [
-                    "A. Terjadinya disorganisasi sosial",
-                    "B. Hilangnya identitas budaya",
-                    "C. Meningkatnya pengangguran",
-                    "D. Timbulnya konflik antar generasi",
-                    "E. Melemahnya nilai-nilai tradisional"
-                ],
-                correctAnswer: 0,
-                explanation: "Perubahan sosial yang terlalu cepat dapat menyebabkan disorganisasi sosial dimana norma-norma lama sudah tidak berlaku tetapi yang baru belum terbentuk."
-            },
-            {
-                question: "Peran utama Indonesia dalam ASEAN adalah...",
-                options: [
-                    "A. Sebagai pendiri dan pemimpin moral",
-                    "B. Penyedia dana terbesar untuk kegiatan",
-                    "C. Penengah konflik antar anggota",
-                    "D. Penggerak utama integrasi ekonomi",
-                    "E. Penjaga keamanan regional"
-                ],
-                correctAnswer: 0,
-                explanation: "Indonesia memainkan peran sebagai pendiri ASEAN dan sering dianggap sebagai pemimpin moral karena ukuran dan pengaruhnya di kawasan."
-            },
-            {
-                question: "Penyebab utama konflik antar agama adalah...",
-                options: [
-                    "A. Perbedaan doktrin dan keyakinan",
-                    "B. Politik identitas yang dieksploitasi",
-                    "C. Ketidakadilan dalam pembangunan",
-                    "D. Campur tangan pihak asing",
-                    "E. Persaingan untuk memperoleh pengaruh"
-                ],
-                correctAnswer: 1,
-                explanation: "Konflik antar agama seringkali dipicu oleh politik identitas dimana perbedaan agama dieksploitasi untuk kepentingan politik tertentu."
-            },
-            {
-                question: "Tujuan utama pembentukan PBB adalah...",
-                options: [
-                    "A. Memelihara perdamaian dan keamanan internasional",
-                    "B. Meningkatkan kerja sama ekonomi global",
-                    "C. Menyelesaikan sengketa antar negara",
-                    "D. Melindungi hak asasi manusia",
-                    "E. Mempromosikan pembangunan berkelanjutan"
-                ],
-                correctAnswer: 0,
-                explanation: "Tujuan utama PBB seperti tercantum dalam Piagam PBB adalah memelihara perdamaian dan keamanan internasional."
-            },
-            {
-                question: "Faktor utama yang mempengaruhi mobilitas sosial adalah...",
-                options: [
-                    "A. Pendidikan, status sosial, dan ekonomi",
-                    "B. Keturunan, kekayaan, dan kekuasaan",
-                    "C. Politik, agama, dan budaya",
-                    "D. Teknologi, media, dan globalisasi",
-                    "E. Hukum, pemerintahan, dan kebijakan"
-                ],
-                correctAnswer: 0,
-                explanation: "Pendidikan merupakan saluran mobilitas sosial utama, sementara status sosial dan ekonomi mempengaruhi kesempatan untuk mobilitas."
-            },
-            {
-                question: "Dampak positif imperialisme di bidang transportasi adalah...",
-                options: [
-                    "A. Pengembangan jaringan transportasi modern",
-                    "B. Meningkatnya mobilitas penduduk",
-                    "C. Menurunnya biaya transportasi",
-                    "D. Terhubungnya daerah-daerah terpencil",
-                    "E. Berkembangnya industri otomotif lokal"
-                ],
-                correctAnswer: 0,
-                explanation: "Imperialisme meninggalkan infrastruktur transportasi modern seperti rel kereta api dan jalan raya untuk kepentingan pengangkutan hasil bumi."
-            },
-            {
-                question: "Peran utama pemerintah dalam perekonomian adalah...",
-                options: [
-                    "A. Mengatur, membimbing, dan mengawasi kegiatan ekonomi",
-                    "B. Menjadi pelaku usaha terbesar di semua sektor",
-                    "C. Menentukan harga semua barang dan jasa",
-                    "D. Menguasai seluruh sumber daya ekonomi",
-                    "E. Membatasi persaingan usaha"
-                ],
-                correctAnswer: 0,
-                explanation: "Dalam sistem ekonomi Pancasila, pemerintah berperan mengatur, membimbing, dan mengawasi kegiatan ekonomi untuk kepentingan rakyat."
-            },
-            {
-                question: "Penyebab utama pengangguran struktural adalah...",
-                options: [
-                    "A. Ketidaksesuaian antara keterampilan pekerja dengan kebutuhan industri",
-                    "B. Kurangnya lapangan pekerjaan yang tersedia",
-                    "C. Kebijakan upah minimum yang terlalu tinggi",
-                    "D. Perkembangan teknologi yang menggantikan tenaga manusia",
-                    "E. Krisis ekonomi yang berkepanjangan"
-                ],
-                correctAnswer: 0,
-                explanation: "Pengangguran struktural terjadi ketika struktur ekonomi berubah tetapi keterampilan pekerja tidak menyesuaikan dengan kebutuhan baru."
-            },
-            {
-                question: "Tujuan utama perdagangan internasional adalah...",
-                options: [
-                    "A. Memperoleh keuntungan komparatif",
-                    "B. Meningkatkan devisa negara",
-                    "C. Memenuhi kebutuhan yang tidak bisa diproduksi sendiri",
-                    "D. Memperluas pasar produk domestik",
-                    "E. Meningkatkan kerja sama politik"
-                ],
-                correctAnswer: 0,
-                explanation: "Menurut teori keunggulan komparatif David Ricardo, negara akan memperoleh manfaat dengan berspesialisasi pada produksi yang paling efisien."
-            },
-            {
-                question: "Faktor utama yang mempengaruhi pertumbuhan ekonomi adalah...",
-                options: [
-                    "A. Sumber daya alam, manusia, modal, dan teknologi",
-                    "B. Ekspor, impor, investasi, dan konsumsi",
-                    "C. Pajak, subsidi, suku bunga, dan inflasi",
-                    "D. Politik, hukum, budaya, dan pendidikan",
-                    "E. Pemerintah, swasta, koperasi, dan masyarakat"
-                ],
-                correctAnswer: 0,
-                explanation: "Faktor produksi utama (sumber daya alam, tenaga kerja, modal, dan teknologi) secara langsung mempengaruhi pertumbuhan ekonomi."
-            },
-            {
-                question: "Dampak negatif modernisasi terhadap keluarga adalah...",
-                options: [
-                    "A. Melemahnya ikatan kekeluargaan",
-                    "B. Berubahnya pola asuh anak",
-                    "C. Meningkatnya konflik generasi",
-                    "D. Hilangnya nilai-nilai tradisional",
-                    "E. Terjadinya kesenjangan ekonomi"
-                ],
-                correctAnswer: 0,
-                explanation: "Modernisasi seringkali melemahkan ikatan kekeluargaan karena individualisme meningkat dan waktu bersama keluarga berkurang."
-            },
-            {
-                question: "Peran penting Indonesia dalam perdamaian dunia adalah...",
-                options: [
-                    "A. Sebagai anggota tidak tetap Dewan Keamanan PBB",
-                    "B. Pengirim pasukan perdamaian PBB",
-                    "C. Tuan rumah konferensi internasional",
-                    "D. Mediator konflik regional",
-                    "E. Pendiri gerakan non-blok"
-                ],
-                correctAnswer: 1,
-                explanation: "Indonesia aktif mengirimkan pasukan perdamaian (peacekeeping forces) dalam misi PBB ke berbagai wilayah konflik."
-            },
-            {
-                question: "Penyebab utama kesenjangan sosial ekonomi adalah...",
-                options: [
-                    "A. Ketidakmerataan distribusi pendapatan dan aset",
-                    "B. Perbedaan tingkat pendidikan",
-                    "C. Kebijakan pemerintah yang tidak adil",
-                    "D. Sistem ekonomi yang kapitalistik",
-                    "E. Kurangnya lapangan pekerjaan"
-                ],
-                correctAnswer: 0,
-                explanation: "Kesenjangan sosial ekonomi pada dasarnya disebabkan oleh ketidakmerataan dalam distribusi pendapatan dan kepemilikan aset produktif."
-            },
-            {
-                question: "Tujuan utama pembangunan berkelanjutan adalah...",
-                options: [
-                    "A. Memenuhi kebutuhan sekarang tanpa mengorbankan generasi mendatang",
-                    "B. Meningkatkan pertumbuhan ekonomi secara maksimal",
-                    "C. Melestarikan lingkungan hidup secara utuh",
-                    "D. Meningkatkan kualitas hidup masyarakat",
-                    "E. Menciptakan kesetaraan sosial"
-                ],
-                correctAnswer: 0,
-                explanation: "Pembangunan berkelanjutan bertujuan memenuhi kebutuhan generasi sekarang tanpa mengorbankan kemampuan generasi mendatang memenuhi kebutuhannya."
-            }
+                        question: "Berikut ini yang termasuk faktor produksi alam adalah...",
+                        options: [
+                            "A. Mesin",
+                            "B. Tanah",
+                            "C. Tenaga kerja",
+                            "D. Keahlian",
+                            "E. Modal"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Tanah termasuk faktor produksi alam (sumber daya alam) bersama dengan air, mineral, dan hasil hutan."
+                    },
+                    {
+                        question: "Pasar dimana penjual dan pembeli berada di tempat yang berbeda disebut pasar...",
+                        options: [
+                            "A. Tradisional",
+                            "B. Modern",
+                            "C. Konkret",
+                            "D. Abstrak",
+                            "E. Oligopoli"
+                        ],
+                        correctAnswer: 3,
+                        explanation: "Pasar abstrak adalah pasar dimana penjual dan pembeli tidak bertemu langsung, seperti pasar saham atau pasar valuta asing."
+                    },
+                    {
+                        question: "Perubahan sosial budaya yang terjadi secara cepat disebut...",
+                        options: [
+                            "A. Evolusi",
+                            "B. Revolusi",
+                            "C. Akulturasi",
+                            "D. Asimilasi",
+                            "E. Difusi"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Revolusi adalah perubahan sosial budaya yang terjadi secara cepat dan seringkali melibatkan perubahan sistem pemerintahan atau tatanan masyarakat."
+                    },
+                    {
+                        question: "Negara ASEAN yang tidak memiliki wilayah laut adalah...",
+                        options: [
+                            "A. Thailand",
+                            "B. Vietnam",
+                            "C. Laos",
+                            "D. Kamboja",
+                            "E. Myanmar"
+                        ],
+                        correctAnswer: 2,
+                        explanation: "Laos adalah satu-satunya negara di ASEAN yang terkurung daratan (landlocked) dan tidak memiliki wilayah laut."
+                    },
+                    {
+                        question: "Peninggalan sejarah Kerajaan Majapahit yang terkenal adalah...",
+                        options: [
+                            "A. Candi Borobudur",
+                            "B. Candi Prambanan",
+                            "C. Candi Mendut",
+                            "D. Candi Tikus",
+                            "E. Candi Penataran"
+                        ],
+                        correctAnswer: 4,
+                        explanation: "Candi Penataran adalah kompleks candi Hindu terbesar di Jawa Timur yang berasal dari masa Kerajaan Majapahit."
+                    },
+                    {
+                        question: "Sistem tanam paksa yang diterapkan Belanda di Indonesia disebut...",
+                        options: [
+                            "A. Cultuurstelsel",
+                            "B. Devide et impera",
+                            "C. Politik etis",
+                            "D. Politik balas budi",
+                            "E. Landrent"
+                        ],
+                        correctAnswer: 0,
+                        explanation: "Cultuurstelsel atau Sistem Tanam Paksa diterapkan oleh Gubernur Jenderal Van den Bosch tahun 1830 untuk mengisi kas Belanda yang kosong."
+                    },
+                    {
+                        question: "Berikut ini yang termasuk contoh interaksi sosial asosiatif adalah...",
+                        options: [
+                            "A. Persaingan",
+                            "B. Konflik",
+                            "C. Akomodasi",
+                            "D. Kontravensi",
+                            "E. Pertentangan"
+                        ],
+                        correctAnswer: 2,
+                        explanation: "Akomodasi termasuk interaksi sosial asosiatif yang mengarah pada penyelesaian konflik, sedangkan lainnya adalah disosiatif."
+                    },
+                    {
+                        question: "Lembaga negara yang bertugas membuat undang-undang adalah...",
+                        options: [
+                            "A. Eksekutif",
+                            "B. Legislatif",
+                            "C. Yudikatif",
+                            "D. Eksaminatif",
+                            "E. Konstitutif"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Lembaga legislatif (DPR dan DPD) bertugas membuat undang-undang sesuai dengan fungsi legislasi."
+                    },
+                    {
+                        question: "Berikut ini yang termasuk kebutuhan sekunder adalah...",
+                        options: [
+                            "A. Makanan",
+                            "B. Pakaian",
+                            "C. Perumahan",
+                            "D. Pendidikan",
+                            "E. Kendaraan pribadi"
+                        ],
+                        correctAnswer: 4,
+                        explanation: "Kendaraan pribadi termasuk kebutuhan sekunder, sedangkan makanan, pakaian, perumahan, dan pendidikan dasar termasuk kebutuhan primer."
+                    },
+                    {
+                        question: "Peristiwa penting yang terjadi pada tanggal 28 Oktober 1928 adalah...",
+                        options: [
+                            "A. Proklamasi Kemerdekaan",
+                            "B. Pertempuran Surabaya",
+                            "C. Sumpah Pemuda",
+                            "D. Pembentukan BPUPKI",
+                            "E. Konferensi Meja Bundar"
+                        ],
+                        correctAnswer: 2,
+                        explanation: "Sumpah Pemuda terjadi pada 28 Oktober 1928 yang menjadi momentum persatuan pemuda dari berbagai daerah di Indonesia."
+                    }
                 ]
             },
             'SMA/SMK': {
                 'IPS': [
                     {
-                question: "Konsep opportunity cost dalam ekonomi menjelaskan tentang...",
-                options: [
-                    "A. Biaya yang dikeluarkan untuk memproduksi barang",
-                    "B. Nilai dari alternatif terbaik yang harus dikorbankan ketika membuat pilihan",
-                    "C. Total biaya produksi termasuk biaya tetap dan variabel",
-                    "D. Keuntungan yang diperoleh dari investasi",
-                    "E. Harga pasar dari suatu barang"
-                ],
-                correctAnswer: 1,
-                explanation: "Opportunity cost adalah nilai dari alternatif terbaik yang harus dikorbankan ketika membuat suatu pilihan. Konsep ini fundamental dalam teori ekonomi untuk memahami pengambilan keputusan."
-            },
-            {
-                question: "Revolusi Industri di Inggris pada abad ke-18 dipengaruhi oleh faktor-faktor berikut, KECUALI...",
-                options: [
-                    "A. Penemuan mesin uap oleh James Watt",
-                    "B. Ketersediaan modal yang besar dari hasil kolonialisme",
-                    "C. Sistem guild yang ketat membatasi produksi",
-                    "D. Ketersediaan bahan baku seperti kapas dari koloni",
-                    "E. Perkembangan transportasi kereta api"
-                ],
-                correctAnswer: 2,
-                explanation: "Sistem guild yang ketat justru menghambat industrialisasi. Revolusi Industri terjadi ketika sistem guild mulai runtuh dan digantikan oleh sistem pabrik yang lebih efisien."
-            },
-            {
-                question: "Dalam teori sosiologi, konsep 'anomie' yang dikemukakan oleh Emile Durkheim merujuk pada...",
-                options: [
-                    "A. Kondisi tanpa norma atau aturan yang jelas dalam masyarakat",
-                    "B. Proses belajar budaya oleh individu",
-                    "C. Stratifikasi sosial berdasarkan ekonomi",
-                    "D. Konflik antar kelas sosial",
-                    "E. Integrasi sosial yang harmonis"
-                ],
-                correctAnswer: 0,
-                explanation: "Anomie adalah kondisi ketika norma-norma sosial melemah atau tidak jelas, sering terjadi selama periode perubahan sosial yang cepat, yang dapat menyebabkan perilaku menyimpang."
-            },
-            {
-                question: "Perjanjian Versailles tahun 1919 memiliki dampak signifikan terhadap Jerman, KECUALI...",
-                options: [
-                    "A. Jerman harus membayar reparasi perang yang besar",
-                    "B. Wilayah Jerman diperkecil dengan dikembalikan ke Prancis",
-                    "C. Jerman dilarang memiliki angkatan bersenjata yang besar",
-                    "D. Jerman kehilangan semua koloninya",
-                    "E. Jerman diberikan bantuan ekonomi untuk pemulihan pasca perang"
-                ],
-                correctAnswer: 4,
-                explanation: "Perjanjian Versailles justru memberatkan Jerman dengan berbagai sanksi tanpa memberikan bantuan pemulihan, yang menjadi salah satu penyebab munculnya Nazi dan Perang Dunia II."
-            },
-            {
-                question: "Dalam geografi, konsep 'central place theory' yang dikembangkan oleh Walter Christaller terutama menjelaskan tentang...",
-                options: [
-                    "A. Pola persebaran permukiman dan pelayanan di suatu wilayah",
-                    "B. Proses urbanisasi di negara berkembang",
-                    "C. Perubahan iklim global",
-                    "D. Migrasi penduduk dari desa ke kota",
-                    "E. Pembentukan batas-batas negara"
-                ],
-                correctAnswer: 0,
-                explanation: "Central Place Theory menjelaskan bagaimana kota-kota dan pusat pelayanan tersebar dalam hierarki tertentu untuk melayani wilayah sekitarnya secara efisien."
-            },
-            {
-                question: "Sistem ekonomi campuran yang dianut oleh Indonesia mengandung ciri-ciri berikut, KECUALI...",
-                options: [
-                    "A. Peran pemerintah dalam mengatur perekonomian",
-                    "B. Mekanisme pasar dalam menentukan harga",
-                    "C. Kepemilikan privat atas alat produksi",
-                    "D. Sentralisasi seluruh kegiatan ekonomi oleh negara",
-                    "E. Perlindungan terhadap usaha kecil dan menengah"
-                ],
-                correctAnswer: 3,
-                explanation: "Sistem ekonomi campuran tidak menganut sentralisasi penuh oleh negara, tetapi menggabungkan unsur pasar dengan intervensi pemerintah untuk kesejahteraan sosial."
-            },
-            {
-                question: "Perang Dingin antara Blok Barat dan Blok Timur ditandai oleh berbagai peristiwa berikut, KECUALI...",
-                options: [
-                    "A. Pembentukan NATO dan Pakta Warsawa",
-                    "B. Krisis Rudal Kuba tahun 1962",
-                    "C. Perlombaan senjata nuklir",
-                    "D. Perang Vietnam dan Korea",
-                    "E. Penandatanganan Perjanjian Westphalia"
-                ],
-                correctAnswer: 4,
-                explanation: "Perjanjian Westphalia terjadi pada tahun 1648 dan tidak ada hubungannya dengan Perang Dingin yang berlangsung setelah Perang Dunia II hingga 1991."
-            },
-            {
-                question: "Dalam demografi, 'transisi demografi' merujuk pada...",
-                options: [
-                    "A. Perubahan struktur usia penduduk dari muda ke tua",
-                    "B. Peralihan dari tingkat kelahiran dan kematian tinggi ke rendah",
-                    "C. Migrasi besar-besaran dari desa ke kota",
-                    "D. Perubahan komposisi etnis suatu negara",
-                    "E. Penurunan angka harapan hidup"
-                ],
-                correctAnswer: 1,
-                explanation: "Transisi demografi adalah teori yang menjelaskan peralihan dari tingkat kelahiran dan kematian yang tinggi ke tingkat yang rendah seiring dengan pembangunan ekonomi dan sosial."
-            },
-            {
-                question: "Gerakan Non-Blok yang dibentuk pada tahun 1961 memiliki tujuan utama...",
-                options: [
-                    "A. Menjalin kerjasama militer antar negara berkembang",
-                    "B. Menentang kolonialisme dan imperialisme",
-                    "C. Menjaga netralitas dalam konflik Perang Dingin",
-                    "D. Membentuk aliansi ekonomi melawan Barat",
-                    "E. Menyebarkan ideologi komunis di dunia ketiga"
-                ],
-                correctAnswer: 2,
-                explanation: "Gerakan Non-Blok didirikan oleh negara-negara yang ingin tetap netral dan tidak memihak Blok Barat maupun Timur selama Perang Dingin, meskipun juga menentang kolonialisme."
-            },
-            {
-                question: "Dalam sosiologi, 'social mobility' merujuk pada...",
-                options: [
-                    "A. Perpindahan penduduk dari satu wilayah ke wilayah lain",
-                    "B. Perubahan status sosial individu atau kelompok dalam stratifikasi sosial",
-                    "C. Penyebaran budaya dari satu masyarakat ke masyarakat lain",
-                    "D. Proses pembentukan kelas sosial baru",
-                    "E. Disintegrasi struktur sosial tradisional"
-                ],
-                correctAnswer: 1,
-                explanation: "Mobilitas sosial adalah pergerakan individu atau kelompok dari satu status sosial ke status lainnya, baik vertikal (naik/turun) maupun horizontal (sama tingkat)."
-            },
-            {
-                question: "Reformasi agraria yang dilakukan di berbagai negara berkembang umumnya bertujuan untuk...",
-                options: [
-                    "A. Meningkatkan produksi pertanian melalui mekanisasi",
-                    "B. Mendistribusikan kepemilikan tanah secara lebih merata",
-                    "C. Mengembangkan industri berbasis pertanian",
-                    "D. Membatasi urbanisasi dengan memperkuat desa",
-                    "E. Menghapuskan sistem bagi hasil tradisional"
-                ],
-                correctAnswer: 1,
-                explanation: "Reformasi agraria terutama ditujukan untuk memperbaiki ketimpangan kepemilikan tanah dan memberikan akses yang lebih adil terhadap sumber daya agraria."
-            },
-            {
-                question: "Dalam teori ketergantungan (dependency theory), negara-negara pinggiran (periphery) mengalami keterbelakangan karena...",
-                options: [
-                    "A. Kurangnya sumber daya alam",
-                    "B. Eksploitasi oleh negara-negara pusat (core)",
-                    "C. Budaya kerja yang rendah",
-                    "D. Iklim yang tidak mendukung",
-                    "E. Sistem politik yang tidak stabil"
-                ],
-                correctAnswer: 1,
-                explanation: "Teori ketergantungan menyatakan bahwa negara berkembang tetap miskin karena dieksploitasi oleh negara maju melalui sistem ekonomi global yang tidak setara."
-            },
-            {
-                question: "Pembentukan ASEAN pada tahun 1967 awalnya dimotivasi oleh...",
-                options: [
-                    "A. Keinginan untuk membentuk pasar bersama seperti Uni Eropa",
-                    "B. Kekhawatiran terhadap penyebaran komunisme di Asia Tenggara",
-                    "C. Upaya menyelesaikan sengketa wilayah antar anggota",
-                    "D. Tekanan dari PBB untuk meningkatkan kerjasama regional",
-                    "E. Kebutuhan akan mata uang bersama"
-                ],
-                correctAnswer: 1,
-                explanation: "ASEAN awalnya dibentuk sebagai wadah kerjasama anti-komunis di tengah Perang Dingin dan konflik Vietnam, meskipun kemudian berkembang menjadi organisasi yang lebih komprehensif."
-            },
-            {
-                question: "Dalam geografi politik, konsep 'heartland theory' yang dikemukakan oleh Halford Mackinder menyatakan bahwa...",
-                options: [
-                    "A. Negara yang menguasai Eropa Timur akan menguasai dunia",
-                    "B. Kekuatan maritim lebih penting daripada daratan",
-                    "C. Negara kepulauan memiliki keunggulan strategis",
-                    "D. Sumber daya alam adalah faktor penentu kekuasaan",
-                    "E. Teknologi informasi akan mengubah peta kekuatan global"
-                ],
-                correctAnswer: 0,
-                explanation: "Heartland Theory menyatakan bahwa siapa yang menguasai 'jantung daratan' (Eropa Timur dan Asia Tengah) akan menguasai 'World Island' (Eurasia-Afrika) dan akhirnya dunia."
-            },
-            {
-                question: "Krisis ekonomi Asia 1997 berdampak besar pada Indonesia, KECUALI...",
-                options: [
-                    "A. Depresiasi nilai rupiah yang tajam",
-                    "B. Jatuhnya rezim Orde Baru",
-                    "C. Nasionalisasi bank-bank swasta",
-                    "D. Peningkatan ekspor karena nilai tukar yang kompetitif",
-                    "E. Intervensi IMF dengan paket bailout yang ketat"
-                ],
-                correctAnswer: 3,
-                explanation: "Krisis justru menyebabkan kontraksi ekonomi yang parah dan penurunan ekspor di awal krisis, meskipun kemudian beberapa sektor ekspor memang menjadi lebih kompetitif."
-            },
-            {
-                question: "Dalam antropologi, konsep 'cultural relativism' menekankan bahwa...",
-                options: [
-                    "A. Semua budaya pada dasarnya sama",
-                    "B. Budaya harus dinilai berdasarkan standarnya sendiri",
-                    "C. Ada budaya yang lebih unggul dari budaya lain",
-                    "D. Globalisasi akan menciptakan budaya universal",
-                    "E. Perubahan budaya adalah linear dan dapat diprediksi"
-                ],
-                correctAnswer: 1,
-                explanation: "Relativisme budaya adalah pendekatan yang menekankan bahwa praktik budaya harus dipahami dalam konteks budaya itu sendiri, bukan dinilai dengan standar budaya lain."
-            },
-            {
-                question: "Revolusi Hijau pada 1960-an bertujuan untuk...",
-                options: [
-                    "A. Meningkatkan kesadaran lingkungan global",
-                    "B. Meningkatkan produksi pangan melalui teknologi pertanian",
-                    "C. Mengembangkan energi terbarukan berbasis pertanian",
-                    "D. Melestarikan keanekaragaman hayati",
-                    "E. Mempromosikan pertanian organik"
-                ],
-                correctAnswer: 1,
-                explanation: "Revolusi Hijau fokus pada peningkatan produksi pangan melalui benih unggul, pupuk kimia, dan irigasi, terutama di negara berkembang untuk mengatasi kelaparan."
-            },
-            {
-                question: "Dalam sosiologi ekonomi, konsep 'embeddedness' yang dikemukakan oleh Karl Polanyi menjelaskan bahwa...",
-                options: [
-                    "A. Ekonomi pasar selalu terpisah dari masyarakat",
-                    "B. Aktivitas ekonomi tertanam dalam hubungan sosial",
-                    "C. Pasar dapat mengatur diri sendiri tanpa intervensi",
-                    "D. Ekonomi modern tidak membutuhkan institusi sosial",
-                    "E. Globalisasi menghapuskan konteks lokal ekonomi"
-                ],
-                correctAnswer: 1,
-                explanation: "Konsep embeddedness menekankan bahwa transaksi ekonomi selalu tertanam dalam jaringan hubungan sosial dan tidak pernah benar-benar otonom dari masyarakat."
-            },
-            {
-                question: "Konferensi Asia-Afrika tahun 1955 di Bandung memiliki arti penting karena...",
-                options: [
-                    "A. Merupakan awal pembentukan PBB",
-                    "B. Menyatukan negara-negara dunia ketiga melawan kolonialisme",
-                    "C. Menciptakan aliansi militer melawan Barat",
-                    "D. Menetapkan sistem ekonomi baru untuk Asia-Afrika",
-                    "E. Menyelesaikan semua konflik regional di Asia dan Afrika"
-                ],
-                correctAnswer: 1,
-                explanation: "KAA 1955 menjadi wadah solidaritas negara-negara Asia-Afrika yang baru merdeka untuk menentang kolonialisme dan imperialisme dalam suasana Perang Dingin."
-            },
-            {
-                question: "Dalam teori pembangunan, 'trickle-down effect' mengasumsikan bahwa...",
-                options: [
-                    "A. Pertumbuhan ekonomi akan otomatis menguntungkan semua lapisan masyarakat",
-                    "B. Pembangunan harus dimulai dari sektor pertanian",
-                    "C. Investasi asing langsung adalah kunci pembangunan",
-                    "D. Industrialisasi harus didahulukan sebelum pembangunan sosial",
-                    "E. Pemerintah harus mengontrol seluruh proses pembangunan"
-                ],
-                correctAnswer: 0,
-                explanation: "Teori trickle-down berasumsi bahwa manfaat pertumbuhan ekonomi akan menetes ke bawah ke masyarakat luas melalui penciptaan lapangan kerja dan peningkatan pendapatan."
-            },
-            {
-                question: "Sistem pemerintahan federal dipilih oleh beberapa negara karena...",
-                options: [
-                    "A. Lebih efisien dalam pengambilan keputusan",
-                    "B. Mencegah konsentrasi kekuasaan di pusat",
-                    "C. Menghilangkan perbedaan budaya daerah",
-                    "D. Memudahkan pembuatan kebijakan seragam",
-                    "E. Mengurangi biaya administrasi pemerintahan"
-                ],
-                correctAnswer: 1,
-                explanation: "Sistem federal membagi kekuasaan antara pemerintah pusat dan daerah, cocok untuk negara dengan keragaman wilayah atau etnis yang besar."
-            },
-            {
-                question: "Dalam sejarah Indonesia, 'Politik Etis' yang diterapkan Belanda pada awal abad ke-20 mencakup...",
-                options: [
-                    "A. Edukasi, irigasi, dan transmigrasi",
-                    "B. Industrialisasi, militerisasi, dan urbanisasi",
-                    "C. Demokratisasi, nasionalisasi, dan sekularisasi",
-                    "D. Liberalisasi, privatisasi, dan globalisasi",
-                    "E. Kristenisasi, westernisasi, dan asimilasi"
-                ],
-                correctAnswer: 0,
-                explanation: "Politik Etis atau Balas Budi Belanda terdiri dari tiga program utama: edukasi (pendidikan), irigasi (pengairan), dan transmigrasi (perpindahan penduduk)."
-            },
-            {
-                question: "Teori 'clash of civilizations' yang dikemukakan oleh Samuel Huntington menyatakan bahwa...",
-                options: [
-                    "A. Konflik masa depan akan berbasis ideologi politik",
-                    "B. Perbedaan ekonomi menjadi sumber konflik utama",
-                    "C. Peradaban yang berbeda akan sulit hidup berdampingan",
-                    "D. Konflik pasca Perang Dingin akan berbasis peradaban dan budaya",
-                    "E. Globalisasi akan menghapuskan perbedaan peradaban"
-                ],
-                correctAnswer: 3,
-                explanation: "Huntington berargumen bahwa setelah Perang Dingin, garis patahan konflik utama dunia akan terjadi antara peradaban-peradaban besar yang berbeda budaya dan agama."
-            },
-            {
-                question: "Dalam konteks globalisasi, 'glokalisasi' merujuk pada...",
-                options: [
-                    "A. Penyebaran budaya global yang seragam",
-                    "B. Penolakan terhadap semua pengaruh asing",
-                    "C. Adaptasi produk global ke konteks lokal",
-                    "D. Dominasi budaya Barat atas budaya lain",
-                    "E. Pembentukan sistem nilai universal"
-                ],
-                correctAnswer: 2,
-                explanation: "Glokalisasi adalah proses adaptasi produk, ide, atau praktik global ke dalam konteks lokal, menciptakan bentuk-bentuk hibrid yang unik."
-            },
-            {
-                question: "Perang Dunia I berbeda dengan Perang Dunia II dalam hal...",
-                options: [
-                    "A. Penggunaan senjata nuklir",
-                    "B. Keterlibatan negara-negara non-Eropa",
-                    "C. Sistem aliansi yang kompleks",
-                    "D. Penggunaan teknologi baru dalam perang",
-                    "E. Genosida sistematis terhadap kelompok etnis"
-                ],
-                correctAnswer: 4,
-                explanation: "Holocaust dan genosida sistematis terhadap Yahudi dan kelompok lain adalah ciri khas Perang Dunia II yang tidak terjadi dalam skala yang sama di PD I."
-            },
-            {
-                question: "Dalam ekonomi, 'Gini Ratio' digunakan untuk mengukur...",
-                options: [
-                    "A. Tingkat pertumbuhan ekonomi",
-                    "B. Tingkat inflasi suatu negara",
-                    "C. Ketimpangan distribusi pendapatan",
-                    "D. Tingkat pengangguran terbuka",
-                    "E. Produktivitas tenaga kerja"
-                ],
-                correctAnswer: 2,
-                explanation: "Koefisien Gini adalah ukuran statistik ketimpangan distribusi pendapatan atau kekayaan dalam suatu populasi, dengan nilai 0 berarti kesetaraan sempurna dan 1 ketimpangan sempurna."
-            },
-            {
-                question: "Gerakan feminisme gelombang pertama pada abad ke-19 fokus pada...",
-                options: [
-                    "A. Hak reproduksi dan seksualitas",
-                    "B. Kesetaraan upah di tempat kerja",
-                    "C. Hak suara dan partisipasi politik perempuan",
-                    "D. Kritik terhadap konstruksi gender",
-                    "E. Kekerasan terhadap perempuan"
-                ],
-                correctAnswer: 2,
-                explanation: "Feminisme gelombang pertama terutama memperjuangkan hak-hak dasar seperti hak memilih (suffrage), hak pendidikan, dan hak kepemilikan properti bagi perempuan."
-            },
-            {
-                question: "Dalam konteks ASEAN, 'AFTA' bertujuan untuk...",
-                options: [
-                    "A. Membentuk aliansi militer regional",
-                    "B. Menciptakan pasar tunggal dan basis produksi",
-                    "C. Menyatukan sistem politik anggota",
-                    "D. Membentuk mata uang bersama",
-                    "E. Mengkoordinasikan kebijakan luar negeri"
-                ],
-                correctAnswer: 1,
-                explanation: "AFTA (ASEAN Free Trade Area) bertujuan menciptakan kawasan perdagangan bebas dengan mengurangi tarif dan hambatan perdagangan antar anggota ASEAN."
-            },
-            {
-                question: "Revolusi Digital berdampak pada masyarakat dalam berbagai cara, KECUALI...",
-                options: [
-                    "A. Meningkatkan akses informasi secara global",
-                    "B. Mengubah pola komunikasi antarmanusia",
-                    "C. Menciptakan kesenjangan digital (digital divide)",
-                    "D. Mengurangi peran negara dalam ekonomi",
-                    "E. Menghilangkan semua bentuk pekerjaan tradisional"
-                ],
-                correctAnswer: 4,
-                explanation: "Meskipun Revolusi Digital mengubah banyak pekerjaan, tidak semua pekerjaan tradisional hilang, banyak yang beradaptasi dengan teknologi baru."
-            },
-            {
-                question: "Dalam sosiologi, 'hegemony' menurut Antonio Gramsci merujuk pada...",
-                options: [
-                    "A. Kekuasaan melalui paksaan dan kekerasan",
-                    "B. Dominasi suatu kelompok melalui konsensus budaya",
-                    "C. Sistem pemerintahan otoriter",
-                    "D. Perdagangan bebas antar negara",
-                    "E. Revolusi proletar melawan borjuasi"
-                ],
-                correctAnswer: 1,
-                explanation: "Konsep hegemoni Gramsci menjelaskan bagaimana kelas penguasa mempertahankan kekuasaan tidak hanya melalui paksaan tetapi terutama melalui penyebaran nilai-nilai dan norma yang diterima sebagai 'common sense' oleh masyarakat."
-            },
-            {
-                question: "Kebijakan 'dekolektivisasi' yang dilakukan Stalin di Uni Soviet bertujuan untuk...",
-                options: [
-                    "A. Menghapuskan pertanian kolektif",
-                    "B. Memperkuat pertanian kolektif melalui mekanisasi",
-                    "C. Mengembalikan tanah kepada petani individu",
-                    "D. Meningkatkan produksi industri berat",
-                    "E. Menghilangkan kelas tani sama sekali"
-                ],
-                correctAnswer: 1,
-                explanation: "Dekolektivisasi Stalin justru memperkuat pertanian kolektif (kolkhoz) dengan menghilangkan petani kaya (kulak) dan mekanisasi pertanian, meskipun menyebabkan kelaparan besar."
-            },
-            {
-                question: "Dalam teori hubungan internasional, 'realisme' berasumsi bahwa...",
-                options: [
-                    "A. Kerjasama internasional selalu menguntungkan semua pihak",
-                    "B. Negara adalah aktor utama yang bertindak rasional untuk kekuasaan",
-                    "C. Organisasi internasional dapat mengatur perilaku negara",
-                    "D. Moralitas harus menjadi dasar kebijakan luar negeri",
-                    "E. Perdamaian dunia dapat dicapai melalui hukum internasional"
-                ],
-                correctAnswer: 1,
-                explanation: "Realisme melihat hubungan internasional sebagai arena anarkis dimana negara-negara berusaha memaksimalkan kekuasaan dan keamanan mereka dalam kompetisi tanpa akhir."
-            },
-            {
-                question: "Pembentukan 'Non-Aligned Movement' (Gerakan Non-Blok) diprakarsai oleh pemimpin-pemimpin berikut, KECUALI...",
-                options: [
-                    "A. Soekarno (Indonesia)",
-                    "B. Jawaharlal Nehru (India)",
-                    "C. Gamal Abdel Nasser (Mesir)",
-                    "D. Josip Broz Tito (Yugoslavia)",
-                    "E. Winston Churchill (Inggris)"
-                ],
-                correctAnswer: 4,
-                explanation: "Winston Churchill adalah perdana menteri Inggris yang mendukung Blok Barat selama Perang Dingin, bukan salah satu pendiri Gerakan Non-Blok."
-            },
-            {
-                question: "Dalam ekonomi politik internasional, 'Washington Consensus' merujuk pada...",
-                options: [
-                    "A. Kebijakan ekonomi neoliberal yang dipromosikan oleh IMF dan Bank Dunia",
-                    "B. Kesepakatan politik antara AS dan Uni Soviet selama Perang Dingin",
-                    "C. Strategi pembangunan berbasis industri substitusi impor",
-                    "D. Sistem perdagangan adil yang menguntungkan negara berkembang",
-                    "E. Aliansi militer negara-negara Amerika Latin melawan AS"
-                ],
-                correctAnswer: 0,
-                explanation: "Washington Consensus adalah paket kebijakan ekonomi neoliberal seperti liberalisasi, privatisasi, dan deregulasi yang dipromosikan oleh lembaga keuangan internasional untuk negara berkembang."
-            },
-            {
-                question: "Peristiwa 'Revolusi Bolshevik' tahun 1917 di Rusia mengakibatkan...",
-                options: [
-                    "A. Berakhirnya sistem monarki dan berdirinya Uni Soviet",
-                    "B. Pembentukan pemerintahan demokratik liberal",
-                    "C. Kembalinya kekuasaan kepada Tsar Nicholas II",
-                    "D. Penyatuan Rusia dengan negara-negara Eropa Barat",
-                    "E. Deklarasi netralitas Rusia dalam politik internasional"
-                ],
-                correctAnswer: 0,
-                explanation: "Revolusi Bolshevik yang dipimpin Lenin menggulingkan Pemerintahan Sementara dan mendirikan negara komunis pertama di dunia, yang kemudian menjadi Uni Soviet."
-            },
-            {
-                question: "Dalam sosiologi perkotaan, 'urban sprawl' merujuk pada...",
-                options: [
-                    "A. Pertumbuhan penduduk kota yang cepat",
-                    "B. Penyebaran permukiman yang tidak terencana di pinggiran kota",
-                    "C. Pembangunan vertikal di pusat kota",
-                    "D. Gentrifikasi kawasan kumuh",
-                    "E. Pembentukan kota satelit yang terencana"
-                ],
-                correctAnswer: 1,
-                explanation: "Urban sprawl adalah perluasan kota yang tidak terencana dan menyebar ke wilayah pinggiran, seringkali menyebabkan masalah transportasi, lingkungan, dan sosial."
-            },
-            {
-                question: "Kebijakan 'apartheid' di Afrika Selatan secara resmi berakhir dengan...",
-                options: [
-                    "A. Kemenangan ANC dalam pemilu 1994",
-                    "B. Intervensi militer PBB tahun 1990",
-                    "C. Deklarasi kemerdekaan oleh Nelson Mandela",
-                    "D. Pemboikotan ekonomi oleh negara-negara Afrika",
-                    "E. Revolusi petani tahun 1992"
-                ],
-                correctAnswer: 0,
-                explanation: "Apartheid berakhir secara resmi dengan pemilu demokratis pertama tahun 1994 dimana ANC pimpinan Nelson Mandela memenangkan mayoritas suara."
-            },
-            {
-                question: "Dalam teori sosiologi, 'McDonaldization' yang dikemukakan oleh George Ritzer merujuk pada...",
-                options: [
-                    "A. Penyebaran restoran cepat saji ke seluruh dunia",
-                    "B. Proses rasionalisasi dan efisiensi yang mendominasi kehidupan sosial",
-                    "C. Americanisasi budaya global",
-                    "D. Komodifikasi semua aspek kehidupan",
-                    "E. Industrialisasi sistem produksi pangan"
-                ],
-                correctAnswer: 1,
-                explanation: "Konsep McDonaldization menggambarkan bagaimana prinsip-prinsip restoran cepat saji (efisiensi, kalkulabilitas, prediktabilitas, kontrol) merambah berbagai bidang kehidupan sosial."
-            },
-            {
-                question: "Perang Salib antara Kristen Eropa dan Muslim Timur Tengah pada Abad Pertengahan memiliki dampak jangka panjang berikut, KECUALI...",
-                options: [
-                    "A. Meningkatkan kontak budaya antara Timur dan Barat",
-                    "B. Memperkuat kekuasaan Gereja Katolik di Eropa",
-                    "C. Mengakhiri sistem feodalisme di Eropa",
-                    "D. Merangsang perdagangan antara Eropa dan Asia",
-                    "E. Menciptakan ketegangan agama yang bertahan lama"
-                ],
-                correctAnswer: 2,
-                explanation: "Feodalisme justru masih kuat setelah Perang Salib. Sistem ini baru melemah kemudian karena faktor lain seperti wabah Black Death dan munculnya ekonomi uang."
-            },
-            {
-                question: "Dalam konteks pembangunan berkelanjutan, 'triple bottom line' mencakup tiga aspek berikut...",
-                options: [
-                    "A. Ekonomi, sosial, dan lingkungan",
-                    "B. Politik, ekonomi, dan budaya",
-                    "C. Teknologi, sumber daya, dan manusia",
-                    "D. Produksi, distribusi, dan konsumsi",
-                    "E. Pertumbuhan, stabilitas, dan pemerataan"
-                ],
-                correctAnswer: 0,
-                explanation: "Konsep triple bottom line menekankan keseimbangan antara profit (ekonomi), people (sosial), dan planet (lingkungan) dalam pembangunan berkelanjutan."
-            },
-            {
-                question: "Gerakan 'Pan-Afrikanisme' pada abad ke-20 bertujuan untuk...",
-                options: [
-                    "A. Menyatukan seluruh benua Afrika di bawah satu pemerintahan",
-                    "B. Mempromosikan solidaritas dan kemerdekaan bangsa-bangsa Afrika",
-                    "C. Menyebarkan agama Kristen ke seluruh Afrika",
-                    "D. Membentuk aliansi militer melawan kolonialisme Eropa",
-                    "E. Mengadopsi sistem politik Barat di seluruh Afrika"
-                ],
-                correctAnswer: 1,
-                explanation: "Pan-Afrikanisme adalah gerakan yang mempromosikan solidaritas bangsa-bangsa Afrika dalam melawan kolonialisme dan mendorong kemerdekaan serta persatuan, meski bukan dalam satu pemerintahan."
-            },
-            {
-                question: "Dalam teori sistem dunia Immanuel Wallerstein, negara 'semi-periphery' memiliki karakteristik...",
-                options: [
-                    "A. Mengeksploitasi negara periphery dan dieksploitasi oleh negara core",
-                    "B. Tidak terlibat sama sekali dalam ekonomi global",
-                    "C. Mengontrol seluruh sistem ekonomi dunia",
-                    "D. Memiliki ekonomi yang sepenuhnya independen",
-                    "E. Hanya bergantung pada pertanian subsisten"
-                ],
-                correctAnswer: 0,
-                explanation: "Negara semi-periphery dalam teori sistem dunia menempati posisi menengah - mengeksploitasi periphery tetapi juga dieksploitasi oleh core, dan berfungsi sebagai penyangga zona-zona lainnya."
-            },
-            {
-                question: "Peristiwa 'Runtuhnya Tembok Berlin' tahun 1989 menandai...",
-                options: [
-                    "A. Awal Perang Dingin antara AS dan Uni Soviet",
-                    "B. Berakhirnya Perang Dunia II di Eropa",
-                    "C. Awal proses reunifikasi Jerman",
-                    "D. Pembentukan Pakta Warsawa",
-                    "E. Kemenangan komunisme di Eropa Timur"
-                ],
-                correctAnswer: 2,
-                explanation: "Runtuhnya Tembok Berlin menjadi simbol berakhirnya Perang Dingin dan memulai proses reunifikasi Jerman Barat dan Timur yang resmi terjadi tahun 1990."
-            },
-            {
-                question: "Dalam sosiologi keluarga, 'keluarga inti' (nuclear family) merujuk pada...",
-                options: [
-                    "A. Keluarga besar yang terdiri dari beberapa generasi",
-                    "B. Orang tua dan anak-anak yang tinggal bersama",
-                    "C. Jaringan keluarga luas dari pihak ayah dan ibu",
-                    "D. Kelompok kekerabatan berdasarkan garis ibu",
-                    "E. Komune keluarga yang hidup bersama"
-                ],
-                correctAnswer: 1,
-                explanation: "Keluarga inti terdiri dari unit dasar orang tua (biasanya suami-istri) dan anak-anak mereka, berbeda dengan keluarga besar (extended family) yang mencakup lebih banyak anggota."
-            },
-            {
-                question: "Krisis Suez tahun 1956 penting dalam sejarah karena...",
-                options: [
-                    "A. Menandai berakhirnya pengaruh kolonial Inggris dan Prancis di Timur Tengah",
-                    "B. Menyebabkan Perang Dunia III antara Blok Barat dan Timur",
-                    "C. Menyatukan negara-negara Arab melawan Israel",
-                    "D. Mengakhiri konflik Arab-Israel",
-                    "E. Memulai era minyak murah di pasar global"
-                ],
-                correctAnswer: 0,
-                explanation: "Krisis Suez menunjukkan berkurangnya kekuatan kolonial Inggris dan Prancis, dan munculnya AS dan Uni Soviet sebagai kekuatan dominan di Timur Tengah pasca kolonial."
-            },
-            {
-                question: "Dalam antropologi ekonomi, 'moral economy' yang dikemukakan oleh James Scott mengacu pada...",
-                options: [
-                    "A. Sistem ekonomi berdasarkan prinsip-prinsip agama",
-                    "B. Harapan masyarakat tentang hak dan kewajiban ekonomi yang adil",
-                    "C. Ekonomi pasar yang diatur oleh hukum moral",
-                    "D. Produksi dan distribusi barang-barang suci",
-                    "E. Sistem barter tradisional dalam masyarakat pedesaan"
-                ],
-                correctAnswer: 1,
-                explanation: "Konsep moral economy menekankan harapan dan norma-norma masyarakat tentang bagaimana sistem ekonomi seharusnya beroperasi untuk menjamin kelangsungan hidup semua anggota."
-            },
-            {
-                question: "Perjanjian 'Bretton Woods' tahun 1944 membentuk institusi berikut, KECUALI...",
-                options: [
-                    "A. International Monetary Fund (IMF)",
-                    "B. World Bank",
-                    "C. General Agreement on Tariffs and Trade (GATT)",
-                    "D. United Nations (PBB)",
-                    "E. Sistem nilai tukar tetap berbasis dolar AS"
-                ],
-                correctAnswer: 3,
-                explanation: "PBB didirikan terpisah melalui Konferensi San Francisco tahun 1945, meskipun sezaman dengan sistem Bretton Woods yang lebih fokus pada ekonomi internasional."
-            },
-            {
-                question: "Dalam teori postkolonial, 'orientalisme' yang dikritik oleh Edward Said merujuk pada...",
-                options: [
-                    "A. Kajian objektif tentang budaya Timur",
-                    "B. Representasi Barat tentang Timur sebagai 'lain' yang inferior",
-                    "C. Minat Barat yang tulus terhadap seni Timur",
-                    "D. Pertukaran budaya yang setara antara Timur dan Barat",
-                    "E. Sistem pengetahuan tradisional masyarakat Timur"
-                ],
-                correctAnswer: 1,
-                explanation: "Orientalisme dalam kritik Said adalah konstruksi Barat tentang Timur sebagai 'lain' yang eksotik, terbelakang, dan perlu dijajah - sebuah wacana kekuasaan lebih dari kajian objektif."
-            },
-            {
-                question: "Revolusi Industri 4.0 ditandai oleh karakteristik berikut, KECUALI...",
-                options: [
-                    "A. Digitalisasi massal proses produksi",
-                    "B. Internet of Things (IoT) dan konektivitas mesin",
-                    "C. Penggunaan energi batu bara secara masif",
-                    "D. Sistem produksi cerdas dan otonom",
-                    "E. Integrasi dunia fisik dan digital"
-                ],
-                correctAnswer: 2,
-                explanation: "Revolusi Industri 4.0 justru mengurangi ketergantungan pada energi fosil tradisional seperti batu bara melalui teknologi digital dan efisiensi energi."
-            }
+                        question: "Teori yang menyatakan bahwa kehidupan berasal dari benda mati yang terjadi secara spontan disebut...",
+                        options: [
+                            "A. Abiogenesis",
+                            "B. Biogenesis",
+                            "C. Darwinisme",
+                            "D. Katastrofisme",
+                            "E. Kosmozoa"
+                        ],
+                        correctAnswer: 0,
+                        explanation: "Teori Abiogenesis (Generatio Spontanea) dikemukakan oleh Aristoteles yang menyatakan bahwa makhluk hidup berasal dari benda mati."
+                    },
+                    {
+                        question: "Berikut ini yang termasuk ciri negara berkembang adalah...",
+                        options: [
+                            "A. Pendapatan per kapita tinggi",
+                            "B. Angka harapan hidup tinggi",
+                            "C. Ketergantungan pada sektor primer",
+                            "D. Tingkat pendidikan merata",
+                            "E. Penguasaan teknologi maju"
+                        ],
+                        correctAnswer: 2,
+                        explanation: "Negara berkembang umumnya masih tergantung pada sektor primer seperti pertanian, perkebunan, dan pertambangan."
+                    },
+                    {
+                        question: "Perubahan sosial yang membawa pengaruh kecil terhadap struktur masyarakat disebut...",
+                        options: [
+                            "A. Perubahan progress",
+                            "B. Perubahan regress",
+                            "C. Perubahan evolusi",
+                            "D. Perubahan kecil",
+                            "E. Perubahan besar"
+                        ],
+                        correctAnswer: 3,
+                        explanation: "Perubahan kecil adalah perubahan yang tidak membawa pengaruh langsung terhadap struktur masyarakat, seperti perubahan mode pakaian."
+                    },
+                    {
+                        question: "Pasar persaingan sempurna memiliki ciri-ciri berikut, kecuali...",
+                        options: [
+                            "A. Banyak penjual dan pembeli",
+                            "B. Barang homogen",
+                            "C. Kebebasan keluar masuk pasar",
+                            "D. Harga ditentukan mekanisme pasar",
+                            "E. Adanya hambatan masuk pasar"
+                        ],
+                        correctAnswer: 4,
+                        explanation: "Pasar persaingan sempurna tidak memiliki hambatan masuk atau keluar pasar, sehingga siapa saja bisa menjadi produsen."
+                    },
+                    {
+                        question: "Berikut ini yang termasuk contoh interaksi sosial disosiatif adalah...",
+                        options: [
+                            "A. Kerjasama",
+                            "B. Akomodasi",
+                            "C. Asimilasi",
+                            "D. Persaingan",
+                            "E. Akulturasi"
+                        ],
+                        correctAnswer: 3,
+                        explanation: "Persaingan termasuk interaksi sosial disosiatif yang dapat mengarah pada konflik jika tidak dikelola dengan baik."
+                    },
+                    {
+                        question: "Pembukaan UUD 1945 alinea keempat memuat tentang...",
+                        options: [
+                            "A. Tujuan negara",
+                            "B. Dasar negara",
+                            "C. Pernyataan kemerdekaan",
+                            "D. Kedaulatan rakyat",
+                            "E. Kesejahteraan sosial"
+                        ],
+                        correctAnswer: 0,
+                        explanation: "Alinea keempat Pembukaan UUD 1945 memuat tujuan negara Indonesia yaitu melindungi segenap bangsa, memajukan kesejahteraan umum, mencerdaskan kehidupan bangsa, dan ikut melaksanakan ketertiban dunia."
+                    },
+                    {
+                        question: "Sistem ekonomi dimana pemerintah menguasai seluruh kegiatan ekonomi disebut...",
+                        options: [
+                            "A. Liberal",
+                            "B. Komando",
+                            "C. Campuran",
+                            "D. Tradisional",
+                            "E. Pancasila"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Sistem ekonomi komando adalah sistem dimana pemerintah menguasai dan mengendalikan seluruh kegiatan ekonomi, seperti yang diterapkan di Korea Utara."
+                    },
+                    {
+                        question: "Berikut ini yang termasuk faktor pendorong perubahan sosial adalah...",
+                        options: [
+                            "A. Adat istiadat yang kuat",
+                            "B. Pendidikan yang majemuk",
+                            "C. Prasangka terhadap hal baru",
+                            "D. Orientasi ke masa lalu",
+                            "E. Perkembangan iptek lambat"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Pendidikan yang majemuk dapat menjadi faktor pendorong perubahan sosial karena membuka wawasan terhadap nilai-nilai baru."
+                    },
+                    {
+                        question: "Lembaga negara yang berwenang menguji undang-undang terhadap UUD 1945 adalah...",
+                        options: [
+                            "A. Mahkamah Agung",
+                            "B. Mahkamah Konstitusi",
+                            "C. Komisi Yudisial",
+                            "D. Dewan Perwakilan Rakyat",
+                            "E. Badan Pemeriksa Keuangan"
+                        ],
+                        correctAnswer: 1,
+                        explanation: "Mahkamah Konstitusi berwenang menguji undang-undang terhadap UUD 1945 sesuai dengan kewenangan yang diberikan oleh Pasal 24C UUD 1945."
+                    },
+                    {
+                        question: "Peristiwa Rengasdengklok terjadi karena...",
+                        options: [
+                            "A. Perbedaan pendapat tentang waktu proklamasi",
+                            "B. Pertentangan antara golongan tua dan muda",
+                            "C. Perselisihan tentang tempat proklamasi",
+                            "D. Perdebatan tentang isi proklamasi",
+                            "E. Ketidaksetujuan tentang penandatangan teks proklamasi"
+                        ],
+                        correctAnswer: 0,
+                        explanation: "Peristiwa Rengasdengklok terjadi karena perbedaan pendapat antara golongan muda yang ingin segera memproklamasikan kemerdekaan dan golongan tua yang menunggu keputusan PPKI."
+                    }
                 ]
             }
         };
 
         // Motivational messages based on score
         const MOTIVATIONAL_MESSAGES = {
-            '90-100': 'Sempurna! Anda sangat luar biasa dalam menguasai materi ini. Pertahankan prestasi ini.',
-            '80-89': 'Hasil yang sangat baik! Anda telah menunjukkan pemahaman yang mendalam tentang materi.',
-            '70-79': 'Kerja bagus! Anda memiliki pemahaman yang baik tentang materi ini.',
+            '90-100': 'Sempurna! Anda sangat luar biasa dalam menguasai materi IPS. Pertahankan prestasi ini.',
+            '80-89': 'Hasil yang sangat baik! Anda telah menunjukkan pemahaman yang mendalam tentang ilmu pengetahuan sosial.',
+            '70-79': 'Kerja bagus! Anda memiliki pemahaman yang baik tentang materi IPS ini.',
             '60-69': 'Hasil yang cukup baik. Tingkatkan lagi pemahaman Anda untuk hasil yang lebih baik.',
-            '50-59': 'Anda sudah memahami dasar-dasarnya. Terus berlatih untuk meningkatkan pemahaman.',
-            '0-49': 'Jangan menyerah! Gunakan hasil ini sebagai motivasi untuk belajar lebih giat lagi.'
+            '50-59': 'Anda sudah memahami dasar-dasarnya. Terus berlatih untuk meningkatkan pemahaman IPS.',
+            '0-49': 'Jangan menyerah! Gunakan hasil ini sebagai motivasi untuk belajar IPS lebih giat lagi.'
         };
         
         // Initialize the application
@@ -3545,7 +2091,7 @@
                 radio.addEventListener('change', showGradeSelection);
             });
             
-            document.getElementById('save-participant-btn').addEventListener('click', startExam);
+            document.getElementById('save-participant-btn').addEventListener('click', validateAndStartExam);
             document.getElementById('finish-exam-btn').addEventListener('click', finishExam);
             document.getElementById('skip-question-btn').addEventListener('click', skipQuestion);
             document.getElementById('unanswered-btn').addEventListener('click', showUnansweredQuestions);
@@ -3567,22 +2113,49 @@
             document.getElementById('fullname').addEventListener('input', function() {
                 // Convert input to uppercase automatically
                 this.value = this.value.toUpperCase();
+                validateField(this, 'fullname-error', /^[A-Za-z ]+$/, "Nama lengkap harus diisi dan hanya boleh mengandung huruf");
                 checkParticipantFormValidity();
             });
             
-            document.getElementById('school-name').addEventListener('input', checkParticipantFormValidity);
-            document.getElementById('student-id').addEventListener('input', checkParticipantFormValidity);
+            document.getElementById('school-name').addEventListener('input', function() {
+                validateField(this, 'school-error', /.+/, "Nama sekolah harus diisi");
+                checkParticipantFormValidity();
+            });
+            
+            document.getElementById('student-id').addEventListener('input', function() {
+                validateField(this, 'nis-error', /^[0-9]+$/, "NIS harus diisi dan hanya boleh mengandung angka");
+                checkParticipantFormValidity();
+            });
+            
             document.querySelectorAll('input[name="purpose"]').forEach(radio => {
-                radio.addEventListener('change', checkParticipantFormValidity);
+                radio.addEventListener('change', function() {
+                    document.getElementById('purpose-error').style.display = 'none';
+                    document.getElementById('purpose-radio-group').classList.remove('radio-group-error');
+                    checkParticipantFormValidity();
+                });
             });
+            
             document.querySelectorAll('input[name="level"]').forEach(radio => {
-                radio.addEventListener('change', checkParticipantFormValidity);
+                radio.addEventListener('change', function() {
+                    document.getElementById('level-error').style.display = 'none';
+                    document.getElementById('level-radio-group').classList.remove('radio-group-error');
+                    checkParticipantFormValidity();
+                });
             });
+            
             document.querySelectorAll('input[name="grade"]').forEach(radio => {
-                radio.addEventListener('change', checkParticipantFormValidity);
+                radio.addEventListener('change', function() {
+                    document.getElementById('grade-error').style.display = 'none';
+                    checkParticipantFormValidity();
+                });
             });
+            
             document.querySelectorAll('input[name="subject"]').forEach(radio => {
-                radio.addEventListener('change', checkParticipantFormValidity);
+                radio.addEventListener('change', function() {
+                    document.getElementById('subject-error').style.display = 'none';
+                    document.getElementById('subject-radio-group').classList.remove('radio-group-error');
+                    checkParticipantFormValidity();
+                });
             });
 
             // Admin panel toggle switches
@@ -3603,6 +2176,9 @@
             document.getElementById('edit-selected-participants').addEventListener('click', editSelectedParticipants);
             document.getElementById('delete-selected-participants').addEventListener('click', deleteSelectedParticipants);
             document.getElementById('validate-certificate-btn').addEventListener('click', validateCertificate);
+            document.getElementById('export-csv-btn').addEventListener('click', exportToCSV);
+            document.getElementById('export-json-btn').addEventListener('click', exportToJSON);
+            document.getElementById('export-excel-btn').addEventListener('click', exportToExcel);
             
             // Search functionality
             document.getElementById('participant-search').addEventListener('input', searchParticipants);
@@ -3616,9 +2192,6 @@
                 radio.addEventListener('change', showEditGradeSelection);
             });
             
-            // Load participants data for admin panel
-            loadParticipantsData();
-            
             // Auto uppercase for edit fullname field
             document.getElementById('edit-fullname').addEventListener('input', function() {
                 this.value = this.value.toUpperCase();
@@ -3630,13 +2203,6 @@
             // Load exam duration
             document.getElementById('exam-duration').value = adminSettings.examDuration;
             
-            // Load question count
-            document.getElementById('question-count').value = adminSettings.questionCount;
-            
-            // Load randomize questions setting
-            document.getElementById('randomize-questions').checked = adminSettings.randomizeQuestions;
-            document.getElementById('randomize-status').textContent = adminSettings.randomizeQuestions ? 'Aktif' : 'Nonaktif';
-            
             // Load greeting message
             document.getElementById('greeting-message-input').value = adminSettings.greetingMessage;
             
@@ -3647,16 +2213,16 @@
             document.getElementById('chairman-name').value = adminSettings.chairmanName;
             
             // Load subject toggle
-            document.getElementById('toggle-social').checked = adminSettings.enabledSubjects.IPS;
-            document.getElementById('social-status').textContent = adminSettings.enabledSubjects.IPS ? 'Aktif' : 'Nonaktif';
+            document.getElementById('toggle-ips').checked = adminSettings.enabledSubjects["IPS"];
+            document.getElementById('ips-status').textContent = adminSettings.enabledSubjects["IPS"] ? 'Aktif' : 'Nonaktif';
         }
         
         function saveParticipantsData() {
-            localStorage.setItem('participantsData', JSON.stringify(participantsData));
+            localStorage.setItem('pergunuParticipantsData', JSON.stringify(participantsData));
         }
         
         function saveAdminSettings() {
-            localStorage.setItem('adminSettings', JSON.stringify(adminSettings));
+            localStorage.setItem('pergunuAdminSettings', JSON.stringify(adminSettings));
         }
         
         function handleLogin() {
@@ -3756,42 +2322,92 @@
             container.appendChild(radioLabel);
         }
         
+        function validateField(field, errorId, pattern, errorMessage) {
+            const errorElement = document.getElementById(errorId);
+            
+            if (!field.value.trim() || !pattern.test(field.value.trim())) {
+                field.classList.add('input-error');
+                errorElement.textContent = errorMessage;
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                field.classList.remove('input-error');
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        
         function checkParticipantFormValidity() {
             let isValid = true;
             
-            // Check common fields
-            const fullname = document.getElementById('fullname').value.trim();
-            if (!fullname || !/^[A-Za-z ]+$/.test(fullname)) {
+            // Validate fullname
+            const fullname = document.getElementById('fullname');
+            if (!validateField(fullname, 'fullname-error', /^[A-Za-z ]+$/, "Nama lengkap harus diisi dan hanya boleh mengandung huruf")) {
                 isValid = false;
             }
             
-            // Check student fields
-            if (!document.getElementById('school-name').value.trim()) {
+            // Validate school name
+            const schoolName = document.getElementById('school-name');
+            if (!validateField(schoolName, 'school-error', /.+/, "Nama sekolah harus diisi")) {
                 isValid = false;
             }
             
-            const studentId = document.getElementById('student-id').value.trim();
-            if (!studentId || !/^[0-9]+$/.test(studentId)) {
+            // Validate student ID
+            const studentId = document.getElementById('student-id');
+            if (!validateField(studentId, 'nis-error', /^[0-9]+$/, "NIS harus diisi dan hanya boleh mengandung angka")) {
                 isValid = false;
             }
             
+            // Validate purpose
             if (!document.querySelector('input[name="purpose"]:checked')) {
+                document.getElementById('purpose-error').style.display = 'block';
+                document.getElementById('purpose-radio-group').classList.add('radio-group-error');
                 isValid = false;
             }
             
+            // Validate level
             if (!document.querySelector('input[name="level"]:checked')) {
+                document.getElementById('level-error').style.display = 'block';
+                document.getElementById('level-radio-group').classList.add('radio-group-error');
                 isValid = false;
             }
             
+            // Validate grade
             if (!document.querySelector('input[name="grade"]:checked')) {
+                document.getElementById('grade-error').style.display = 'block';
                 isValid = false;
             }
             
+            // Validate subject
             if (!document.querySelector('input[name="subject"]:checked')) {
+                document.getElementById('subject-error').style.display = 'block';
+                document.getElementById('subject-radio-group').classList.add('radio-group-error');
                 isValid = false;
             }
             
             document.getElementById('save-participant-btn').disabled = !isValid;
+            return isValid;
+        }
+        
+        function validateAndStartExam() {
+            if (checkParticipantFormValidity()) {
+                startExam();
+            } else {
+                // Show warning notification
+                const warning = document.getElementById('form-warning');
+                warning.style.display = 'block';
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    warning.style.display = 'none';
+                }, 5000);
+                
+                // Scroll to first error
+                const firstError = document.querySelector('.input-error, .radio-group-error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
         }
         
         function startExam() {
@@ -3805,22 +2421,23 @@
                 subject: document.querySelector('input[name="subject"]:checked')?.value,
                 school: document.getElementById('school-name')?.value.trim(),
                 studentId: document.getElementById('student-id')?.value.trim(),
-                examDate: new Date().toISOString()
+                examDate: new Date().toISOString(),
+                deviceInfo: getDeviceInfo()
             };
             
             // Load questions based on level - hanya IPS
             if (participantData.level && QUESTION_BANK[participantData.level]['IPS']) {
-                questions = QUESTION_BANK[participantData.level]['IPS'];
+                // Acak urutan soal
+                const originalQuestions = QUESTION_BANK[participantData.level]['IPS'];
+                questions = shuffleArray(originalQuestions);
+                
+                // Simpan urutan soal yang diacak
+                questionOrder = questions.map((_, index) => index);
             } else {
-                // Default questions
-                questions = QUESTION_BANK['SD']['IPS'];
-            }
-            
-            // Randomize questions if setting is enabled
-            if (adminSettings.randomizeQuestions) {
-                questions = shuffleArray(questions).slice(0, adminSettings.questionCount);
-            } else {
-                questions = questions.slice(0, adminSettings.questionCount);
+                // Default questions (SD)
+                const originalQuestions = QUESTION_BANK['SD']['IPS'];
+                questions = shuffleArray(originalQuestions);
+                questionOrder = questions.map((_, index) => index);
             }
             
             // Initialize exam data
@@ -3854,6 +2471,28 @@
             }, 500);
         }
         
+        // Fungsi untuk mendapatkan informasi perangkat
+        function getDeviceInfo() {
+            const userAgent = navigator.userAgent;
+            let deviceType = 'Desktop';
+            
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+                deviceType = 'Mobile';
+            } else if (/Tablet|iPad/i.test(userAgent)) {
+                deviceType = 'Tablet';
+            }
+            
+            return {
+                deviceType: deviceType,
+                userAgent: userAgent,
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                platform: navigator.platform,
+                language: navigator.language
+            };
+        }
+        
+        // Fungsi untuk mengacak array (Fisher-Yates algorithm)
         function shuffleArray(array) {
             const newArray = [...array];
             for (let i = newArray.length - 1; i > 0; i--) {
@@ -3931,8 +2570,9 @@
             currentQuestionIndex = index;
             const question = questions[index];
             
-            // Update question text
-            document.getElementById('question-text').textContent = `Soal ${index + 1}: ${question.question}`;
+            // Update question text (tampilkan nomor urut asli dari questionOrder)
+            const originalQuestionNumber = questionOrder[index] + 1;
+            document.getElementById('question-text').textContent = `Soal ${originalQuestionNumber}: ${question.question}`;
             
             // Clear previous image if exists
             const imageContainer = document.getElementById('question-image-container');
@@ -4040,7 +2680,7 @@
             }
         }
         
-        function finishExam() {
+        async function finishExam() {
             clearInterval(examTimer);
             
             // Calculate unanswered questions
@@ -4049,16 +2689,56 @@
             // Generate certificate code
             const certificateCode = generateUniqueCode();
             
-            // Add participant to data store
+            // Calculate score
             const score = Math.round((examData.correct / questions.length) * 100);
-            participantsData.push({
+            
+            // Add participant to data store
+            const participantRecord = {
                 ...participantData,
                 score: score,
                 examDate: new Date().toISOString(),
-                certificateCode: certificateCode
-            });
-            saveParticipantsData();
+                certificateCode: certificateCode,
+                answers: examData.answers,
+                questions: questions.map((q, i) => ({
+                    question: q.question,
+                    selectedAnswer: examData.answers[i],
+                    correctAnswer: q.correctAnswer,
+                    explanation: q.explanation
+                })),
+                deviceInfo: participantData.deviceInfo,
+                totalQuestions: questions.length,
+                correctAnswers: examData.correct,
+                wrongAnswers: examData.wrong,
+                unanswered: examData.unanswered
+            };
             
+            // Simpan ke Google Sheets dan localStorage
+            try {
+                // First try to save to Google Sheets
+                const saveResult = await saveToGoogleSheets(participantRecord);
+                
+                if (saveResult.success) {
+                    // If successful, save to localStorage as well
+                    participantsData.push(participantRecord);
+                    saveParticipantsData();
+                    
+                    // Show results
+                    showResults(participantRecord, certificateCode);
+                } else {
+                    // If Google Sheets fails, fallback to localStorage
+                    console.error('Failed to save to Google Sheets:', saveResult.message);
+                    saveToLocalStorage(participantRecord);
+                    showResults(participantRecord, certificateCode);
+                }
+            } catch (error) {
+                console.error('Error saving to Google Sheets:', error);
+                // Fallback to localStorage
+                saveToLocalStorage(participantRecord);
+                showResults(participantRecord, certificateCode);
+            }
+        }
+        
+        function showResults(participantRecord, certificateCode) {
             // Hide exam screen with slide out animation
             document.getElementById('exam-screen').classList.add('slide-out');
             
@@ -4070,7 +2750,7 @@
                 currentScreen = 'results';
                 
                 // Display results
-                displayResults();
+                displayResults(participantRecord);
                 
                 // Generate certificate
                 generateCertificate(certificateCode);
@@ -4083,20 +2763,78 @@
                 certificateSound.play().catch(e => console.log("Certificate sound prevented:", e));
             }, 500);
         }
-        
-        function displayResults() {
-            document.getElementById('result-name').textContent = participantData.fullname;
+
+        // Fungsi untuk mengirim data ke Google Sheets
+        async function saveToGoogleSheets(participantData) {
+            const dataToSend = {
+                action: 'saveParticipant',
+                data: {
+                    fullname: participantData.fullname,
+                    status: participantData.status,
+                    purpose: participantData.purpose,
+                    level: participantData.level,
+                    grade: participantData.grade,
+                    subject: participantData.subject,
+                    school: participantData.school,
+                    studentId: participantData.studentId,
+                    score: participantData.score,
+                    certificateCode: participantData.certificateCode,
+                    examDate: participantData.examDate,
+                    deviceType: participantData.deviceInfo?.deviceType || 'Unknown',
+                    totalQuestions: participantData.totalQuestions,
+                    correctAnswers: participantData.correctAnswers,
+                    wrongAnswers: participantData.wrongAnswers,
+                    unanswered: participantData.unanswered
+                }
+            };
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dataToSend)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Error saving to Google Sheets:', error);
+                throw error;
+            }
+        }
+
+        function saveToLocalStorage(participantData) {
+            const participantRecord = {
+                ...participantData,
+                totalQuestions: questions.length,
+                correctAnswers: examData.correct,
+                wrongAnswers: examData.wrong,
+                unanswered: examData.unanswered
+            };
+            
+            participantsData.push(participantRecord);
+            saveParticipantsData();
+        }
+            
+        function displayResults(participantRecord) {
+            document.getElementById('result-name').textContent = participantRecord.fullname;
             document.getElementById('result-status').textContent = 'Pelajar';
-            document.getElementById('result-level').textContent = participantData.level || '-';
-            document.getElementById('result-grade').textContent = participantData.grade ? `Kelas ${participantData.grade}` : '-';
-            document.getElementById('result-subject').textContent = participantData.subject || '-';
-            document.getElementById('total-questions').textContent = questions.length;
-            document.getElementById('correct-answers').textContent = examData.correct;
-            document.getElementById('wrong-answers').textContent = examData.wrong;
-            document.getElementById('unanswered-questions').textContent = examData.unanswered;
+            document.getElementById('result-level').textContent = participantRecord.level || '-';
+            document.getElementById('result-grade').textContent = participantRecord.grade ? `Kelas ${participantRecord.grade}` : '-';
+            document.getElementById('result-subject').textContent = participantRecord.subject || '-';
+            document.getElementById('total-questions').textContent = participantRecord.totalQuestions;
+            document.getElementById('correct-answers').textContent = participantRecord.correctAnswers;
+            document.getElementById('wrong-answers').textContent = participantRecord.wrongAnswers;
+            document.getElementById('unanswered-questions').textContent = participantRecord.unanswered;
             
             // Calculate score (percentage)
-            const score = Math.round((examData.correct / questions.length) * 100);
+            const score = Math.round((participantRecord.correctAnswers / participantRecord.totalQuestions) * 100);
             document.getElementById('exam-score').textContent = `${score}%`;
         }
         
@@ -4125,6 +2863,10 @@
                 }
             }
             
+            // Format NIS and school name for certificate code
+            const formattedNIS = participantData.studentId ? participantData.studentId : '0000';
+            const formattedSchool = participantData.school ? participantData.school.replace(/\s+/g, '-').toUpperCase().substring(0, 10) : 'SEKOLAH';
+            
             // Create certificate HTML
             const certificate = document.createElement('div');
             certificate.className = 'certificate';
@@ -4132,16 +2874,16 @@
             certificate.innerHTML = `
                 <div class="certificate-content">
                     <h1 class="certificate-title">SERTIFIKAT PRESTASI</h1>
-                    <p class="certificate-code">${formatName(participantData.fullname)}/PELAJAR/${participantData.level || 'UMUM'}/${participantData.subject || 'UMUM'}/${dateString}/${certificateCode}/PERGUNU-STB</p>
+                    <p class="certificate-code">${formatName(participantData.fullname)}/${formattedNIS}/${formattedSchool}/${participantData.level || 'UMUM'}/${participantData.subject || 'UMUM'}/${dateString}/${certificateCode}/PERGUNU-STB</p>
                     <p>Diberikan Kepada</p>
                     <h2 class="certificate-recipient">${formatName(participantData.fullname)}</h2>
                     <p class="certificate-body">
                         Atas Partisipasi & Pencapaian Luar Biasa Dalam<br>
-                        Ujian Pergunu Situbondo
+                        Ujian IPS Pergunu Situbondo
                     </p>
                     <p class="certificate-body">
-                        Sebagai penghargaan atas dedikasi dalam memahami materi ujian dan mengasah logika, 
-                        sertifikat ini diberikan sebagai motivasi untuk terus berkembang.
+                        Sebagai penghargaan atas dedikasi dalam memahami materi ilmu pengetahuan sosial dan meningkatkan wawasan kebangsaan, 
+                        sertifikat ini diberikan sebagai motivasi untuk terus berkembang dalam ilmu sosial.
                     </p>
                     <div class="certificate-score">Nilai: ${score}%</div>
                     <p class="certificate-motivation">${motivation}</p>
@@ -4247,6 +2989,8 @@
             if (code === adminSettings.adminCode) {
                 // Show admin panel content
                 document.getElementById('admin-panel-content').style.display = 'block';
+                // Load participants data
+                loadParticipantsData();
             } else {
                 alert('Kode admin salah. Silakan coba lagi.');
             }
@@ -4572,6 +3316,7 @@
                     <p>Mata Ujian: ${participant.subject || '-'}</p>
                     <p>Nilai: ${participant.score}%</p>
                     <p>Tanggal Ujian: ${new Date(participant.examDate).toLocaleDateString('id-ID')}</p>
+                    <p>Perangkat: ${participant.deviceInfo?.deviceType || 'Tidak diketahui'}</p>
                 `;
                 validationResult.style.display = 'block';
             } else {
@@ -4622,23 +3367,106 @@
         
         function saveSettings() {
             const examDuration = parseInt(document.getElementById('exam-duration').value);
-            const questionCount = parseInt(document.getElementById('question-count').value);
-            const randomizeQuestions = document.getElementById('randomize-questions').checked;
             
             // Update admin settings
             adminSettings.examDuration = examDuration;
-            adminSettings.questionCount = questionCount;
-            adminSettings.randomizeQuestions = randomizeQuestions;
             
             // Update subject toggle
             adminSettings.enabledSubjects = {
-                IPS: document.getElementById('toggle-social').checked
+                "IPS": document.getElementById('toggle-ips').checked
             };
             
             // Save to localStorage
             saveAdminSettings();
             
             alert('Pengaturan berhasil disimpan!');
+        }
+        
+        function exportToCSV() {
+            if (participantsData.length === 0) {
+                alert('Tidak ada data peserta untuk diekspor');
+                return;
+            }
+            
+            // Create CSV header
+            let csv = 'Nama,NIS,Sekolah,Tingkat,Kelas,Subject,Nilai,Kode Sertifikat,Tanggal Ujian,Jenis Perangkat\n';
+            
+            // Add data rows
+            participantsData.forEach(participant => {
+                csv += `"${participant.fullname}","${participant.studentId || ''}","${participant.school || ''}",`;
+                csv += `"${participant.level || ''}","${participant.grade || ''}","${participant.subject || ''}",`;
+                csv += `"${participant.score}","${participant.certificateCode || ''}","${new Date(participant.examDate).toLocaleString('id-ID')}",`;
+                csv += `"${participant.deviceInfo?.deviceType || 'Tidak diketahui'}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `data-peserta-${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function exportToJSON() {
+            if (participantsData.length === 0) {
+                alert('Tidak ada data peserta untuk diekspor');
+                return;
+            }
+            
+            // Create JSON data
+            const jsonData = JSON.stringify(participantsData, null, 2);
+            
+            // Create download link
+            const blob = new Blob([jsonData], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `data-peserta-${new Date().toISOString().slice(0,10)}.json`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function exportToExcel() {
+            if (participantsData.length === 0) {
+                alert('Tidak ada data peserta untuk diekspor');
+                return;
+            }
+            
+            // Prepare data for Excel
+            const excelData = [
+                ['Nama', 'NIS', 'Sekolah', 'Tingkat', 'Kelas', 'Mata Ujian', 'Nilai', 'Kode Sertifikat', 'Tanggal Ujian', 'Jenis Perangkat']
+            ];
+            
+            participantsData.forEach(participant => {
+                excelData.push([
+                    participant.fullname,
+                    participant.studentId || '',
+                    participant.school || '',
+                    participant.level || '',
+                    participant.grade || '',
+                    participant.subject || '',
+                    participant.score,
+                    participant.certificateCode || '',
+                    new Date(participant.examDate).toLocaleString('id-ID'),
+                    participant.deviceInfo?.deviceType || 'Tidak diketahui'
+                ]);
+            });
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data Peserta");
+            
+            // Export to Excel file
+            XLSX.writeFile(wb, `data-peserta-${new Date().toISOString().slice(0,10)}.xlsx`);
         }
     </script>
 </body>
